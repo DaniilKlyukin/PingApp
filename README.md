@@ -6,5 +6,61 @@
 
 ![image](https://github.com/DaniilKlyukin/PingApp/assets/32903150/5f5fe707-5710-46e4-b18f-b3de10e9ac03)
 
+Отображение статистики по пользователям. Чтобы выбрать определенных пользователей необходимо выделить их в таблице.
+
 ![image](https://github.com/DaniilKlyukin/PingApp/assets/32903150/5ce988b3-66b5-4516-9a0e-8e61572447c4)
 
+Сообщение при входе пользователя
+
+![image](https://github.com/DaniilKlyukin/PingApp/assets/32903150/f300679b-a07c-44fb-b1bb-6662519fc320)
+
+Пример содержимого файла со статистикой:
+
+``` json
+
+[
+  {
+    "Address": "192.168.0.1",
+    "Nickname": "Иван",
+    "Statuses": [
+      {
+        "DateTime": "2024-05-05T18:51:14.356973+04:00",
+        "AtWork": true
+      },
+      {
+        "DateTime": "2024-05-05T18:53:29.3241242+04:00",
+        "AtWork": true
+      }
+    ]
+  },
+  {
+    "Address": "192.168.0.50",
+    "Nickname": "Пётр",
+    "Statuses": [
+      {
+        "DateTime": "2024-05-05T18:52:53.2592341+04:00",
+        "AtWork": false
+      },
+      {
+        "DateTime": "2024-05-05T18:53:29.3241295+04:00",
+        "AtWork": false
+      }
+    ]
+  },
+  {
+    "Address": "192.168.0.194",
+    "Nickname": "Николай",
+    "Statuses": [
+      {
+        "DateTime": "2024-05-05T18:52:53.262272+04:00",
+        "AtWork": true
+      },
+      {
+        "DateTime": "2024-05-05T18:53:29.3241367+04:00",
+        "AtWork": true
+      }
+    ]
+  }
+]
+
+```

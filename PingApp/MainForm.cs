@@ -31,14 +31,23 @@ namespace PingApp
         private void userLoggedIn(UserStatus status)
         {
             notifyIcon.BalloonTipTitle = "¬ сети";
-            notifyIcon.BalloonTipText = $"{status.NameOrAddress} в сети!";
+
+            var nick = pinger.GetNickname(status.Address);
+
+            var name = nick == null ? status.Address : $"{status.Address} ({nick})";
+
+            notifyIcon.BalloonTipText = $"{name} в сети!";
             notifyIcon.ShowBalloonTip(5000);
         }
 
         private void userLoggedOut(UserStatus status)
         {
             notifyIcon.BalloonTipTitle = "¬ышел из сети";
-            notifyIcon.BalloonTipText = $"{status.NameOrAddress} не в сети!";
+            var nick = pinger.GetNickname(status.Address);
+
+            var name = nick == null ? status.Address : $"{status.Address} ({nick})";
+
+            notifyIcon.BalloonTipText = $"{name} не в сети!";
             notifyIcon.ShowBalloonTip(5000);
         }
 
@@ -64,15 +73,16 @@ namespace PingApp
 
         private void UpdateDataGrid()
         {
-            var data = new List<DatagridUserItem>();
+            var data = new List<DataGridUserItem>();
 
-            foreach (var (nameOrAddress, stack) in pinger)
+            foreach (var statistics in pinger)
             {
-                data.Add(new DatagridUserItem
+                data.Add(new DataGridUserItem
                 {
-                    NameOrAddress = nameOrAddress,
-                    AtWork = stack.FirstOrDefault()?.AtWork ?? false,
-                    StatusString = getUserWorkStatusString(pinger, nameOrAddress)
+                    Address = statistics.Address,
+                    NickName = statistics.Nickname,
+                    AtWork = statistics.Statuses.LastOrDefault()?.AtWork ?? false,
+                    StatusString = getUserWorkStatusString(pinger, statistics.Address)
                 });
             }
 
@@ -133,7 +143,12 @@ namespace PingApp
             var statisticsForm = new StatisticsForm(
                 selectedAddresses
                 .Select(x =>
-                    (x.NameOrAddress, pinger.GetUserStatuses(x.NameOrAddress)))
+                    new UserStatistics
+                    {
+                        Address = x.Address,
+                        Nickname = x.NickName,
+                        Statuses = pinger.GetUserStatuses(x.Address)
+                    })
                 .ToList());
 
             statisticsForm.ShowDialog();
@@ -157,10 +172,14 @@ namespace PingApp
         {
             var userForm = new UserForm();
 
-            if (userForm.ShowDialog() == DialogResult.OK && !string.IsNullOrEmpty(userForm.NameOrAddress))
+            if (userForm.ShowDialog() == DialogResult.OK && !string.IsNullOrEmpty(userForm.Address))
             {
                 MessageBox.Show("ѕользователь добавлен");
-                pinger.AddUser(userForm.NameOrAddress);
+                pinger.AddUser(userForm.Address);
+
+                if (userForm.Nickname != null)
+                    pinger.AddNickname(userForm.Address, userForm.Nickname);
+
                 UpdateDataGrid();
             }
         }
@@ -180,20 +199,20 @@ namespace PingApp
         {
             foreach (var item in getSelectedDatagridItems())
             {
-                if (item.NameOrAddress != null)
-                    pinger.RemoveUser(item.NameOrAddress);
+                if (item.Address != null)
+                    pinger.RemoveUser(item.Address);
             }
 
             UpdateDataGrid();
         }
 
-        private IEnumerable<DatagridUserItem> getSelectedDatagridItems()
+        private IEnumerable<DataGridUserItem> getSelectedDatagridItems()
         {
             if (dataGridView.SelectedRows.Count == 0)
             {
                 for (int index = 0; index < dataGridView.RowCount; index++)
                 {
-                    yield return (DatagridUserItem)dataGridView.Rows[index].DataBoundItem;
+                    yield return (DataGridUserItem)dataGridView.Rows[index].DataBoundItem;
                 }
             }
             else
@@ -201,25 +220,7 @@ namespace PingApp
                 for (int index = 0; index < dataGridView.SelectedRows.Count; index++)
                 {
                     var selectedRow = dataGridView.SelectedRows[index];
-                    yield return (DatagridUserItem)selectedRow.DataBoundItem;
-                }
-            }
-        }
-
-        private void getLocalAddress()
-        {
-            // доступно ли сетевое подключение
-            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
-                return;
-            // запросить у DNS-сервера IP-адрес, св€занный с именем узла
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            // ѕройдем по списку IP-адресов, св€занных с узлом
-            foreach (var ip in host.AddressList)
-            {
-                // если текущий IP-адрес версии IPv4, то выведем его 
-                if (ip.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    Debug.WriteLine(ip.ToString());
+                    yield return (DataGridUserItem)selectedRow.DataBoundItem;
                 }
             }
         }

@@ -12,27 +12,49 @@ namespace PingApp
 
         }
 
-        public Pinger(Dictionary<string, Stack<WorkStatus>> statistics)
+        public Pinger(IList<UserStatistics> statistics)
         {
-            Statistics = statistics;
+            this.statistics = statistics.ToDictionary(
+                k => k.Address,
+                v =>
+                {
+                    var stack = new Stack<WorkStatus>();
+
+                    foreach (var status in v.Statuses)
+                        stack.Push(status);
+
+                    return stack;
+                });
+
+            foreach (var stat in statistics)
+            {
+                if (!string.IsNullOrEmpty(stat.Nickname))
+                    AddNickname(stat.Address, stat.Nickname);
+            }
         }
 
         public event UserLogged? OnLoggedIn;
         public event UserLogged? OnLoggedOut;
 
-        public Dictionary<string, Stack<WorkStatus>> Statistics { get; private set; } = new();
+        private Dictionary<string, Stack<WorkStatus>> statistics = new();
+        private Dictionary<string, string> addressNicknames = new();
 
-        public IEnumerator<KeyValuePair<string, Stack<WorkStatus>>> GetEnumerator()
+        public IEnumerator<UserStatistics> GetEnumerator()
         {
-            foreach (var keyValuePair in Statistics)
+            foreach (var (address, statuses) in statistics)
             {
-                yield return keyValuePair;
+                yield return new UserStatistics
+                {
+                    Address = address,
+                    Nickname = GetNickname(address),
+                    Statuses = statuses.Reverse().ToList()
+                };
             }
         }
 
         public bool TryGetUserLastTimeAtWork(string nameOrAddress, out bool atWork, out DateTime lastTimeAtWork, out TimeSpan dt)
         {
-            if (!Statistics.ContainsKey(nameOrAddress) || !Statistics[nameOrAddress].Any())
+            if (!statistics.ContainsKey(nameOrAddress) || !statistics[nameOrAddress].Any())
             {
                 lastTimeAtWork = DateTime.MinValue;
                 dt = TimeSpan.MinValue;
@@ -40,7 +62,7 @@ namespace PingApp
                 return false;
             }
 
-            var stack = Statistics[nameOrAddress];
+            var stack = statistics[nameOrAddress];
 
             var latestStatus = stack.First();
 
@@ -69,28 +91,50 @@ namespace PingApp
             return false;
         }
 
-        public void AddUser(string nameOrAddress)
+        public void AddUser(string address)
         {
-            if (!Statistics.ContainsKey(nameOrAddress))
-                Statistics.Add(nameOrAddress, new Stack<WorkStatus>());
+            if (!statistics.ContainsKey(address))
+                statistics.Add(address, new Stack<WorkStatus>());
         }
 
-        public void RemoveUser(string nameOrAddress)
+        public void RemoveUser(string address)
         {
-            if (Statistics.ContainsKey(nameOrAddress))
-                Statistics.Remove(nameOrAddress);
+            if (statistics.ContainsKey(address))
+            {
+                statistics.Remove(address);
+                RemoveNickname(address);
+            }
         }
 
-        public List<WorkStatus> GetUserStatuses(string nameOrAddress)
+        public void AddNickname(string address, string nickname)
         {
-            return Statistics[nameOrAddress].ToList();
+            if (!addressNicknames.ContainsKey(address))
+                addressNicknames.Add(address, nickname);
+            else
+                addressNicknames[address] = nickname;
+        }
+
+        public void RemoveNickname(string address)
+        {
+            if (addressNicknames.ContainsKey(address))
+                addressNicknames.Remove(address);
+        }
+
+        public string? GetNickname(string address)
+        {
+            return addressNicknames.GetValueOrDefault(address);
+        }
+
+        public List<WorkStatus> GetUserStatuses(string address)
+        {
+            return statistics[address].Reverse().ToList();
         }
 
         public async void UpdateStatistics()
         {
             var userStatusTasks = new List<Task<UserStatus>>();
 
-            foreach (var (nameOrAddress, stack) in Statistics)
+            foreach (var (nameOrAddress, stack) in statistics)
             {
                 userStatusTasks.Add(
                     Task.Run(
@@ -107,7 +151,7 @@ namespace PingApp
 
         public void ClearSatistics()
         {
-            foreach (var (_, stack) in Statistics)
+            foreach (var (_, stack) in statistics)
             {
                 stack.Clear();
             }
@@ -129,17 +173,22 @@ namespace PingApp
             }
         }
 
+        /// <summary>
+        /// Сохранить статус пользователя. При сохранении данные сжимаются таким образом, чтобы хранить только изменения статуса, 
+        /// т.е. только моменты когда пользователь заходит или выходит из сети.
+        /// </summary>
+        /// <param name="userStatus"></param>
         private void addStatistic(UserStatus userStatus)
         {
-            if (!Statistics.ContainsKey(userStatus.NameOrAddress))
+            if (!statistics.ContainsKey(userStatus.Address))
             {
                 var stack = new Stack<WorkStatus>();
                 stack.Push(userStatus.WorkStatus);
-                Statistics.Add(userStatus.NameOrAddress, stack);
+                statistics.Add(userStatus.Address, stack);
             }
             else
             {
-                var stack = Statistics[userStatus.NameOrAddress];
+                var stack = statistics[userStatus.Address];
 
                 if (stack.Count >= 2)
                 {

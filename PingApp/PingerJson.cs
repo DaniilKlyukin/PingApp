@@ -6,22 +6,23 @@ namespace PingApp
     {
         public static string Serialize(Pinger pinger)
         {
-            return JsonConvert.SerializeObject(pinger.Statistics, Formatting.Indented);
+            var statistics = new List<UserStatistics>();
+
+            foreach (var stat in pinger)
+            {
+                statistics.Add(stat);
+            }
+
+            return JsonConvert.SerializeObject(statistics, Formatting.Indented);
         }
 
         public static Pinger Deserialize(string json)
         {
-            var stat = JsonConvert.DeserializeObject<Dictionary<string, Stack<WorkStatus>>>(json);
+            var stat = JsonConvert.DeserializeObject<List<UserStatistics>>(json);
 
             if (stat == null)
             {
                 throw new JsonException($"Can`t deserialize Pinger:\n{json}");
-            }
-
-            var keys = stat.Keys.ToArray();
-            for (int i = 0; i < stat.Count; i++)
-            {
-                stat[keys[i]] = new Stack<WorkStatus>(stat[keys[i]]);
             }
 
             return new Pinger(stat);

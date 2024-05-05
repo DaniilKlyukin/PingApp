@@ -3,7 +3,7 @@
     public class UserStatus
     {
         public WorkStatus WorkStatus { get; set; }
-        public string NameOrAddress { get; set; }
+        public string Address { get; set; }
 
         public UserStatus(
             DateTime dateTime,
@@ -11,12 +11,12 @@
             bool atWork)
         {
             WorkStatus = new WorkStatus(dateTime, atWork);
-            NameOrAddress = nameOrAddress;
+            Address = nameOrAddress;
         }
 
         public override string ToString()
         {
-            return $"{WorkStatus.DateTime}\t{NameOrAddress}\t{WorkStatus.AtWork}";
+            return $"{WorkStatus.DateTime}\t{Address}\t{WorkStatus.AtWork}";
         }
 
         public static UserStatus FromString(string str)

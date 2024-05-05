@@ -2,13 +2,14 @@
 {
     public partial class UserForm : Form
     {
-        public string? NameOrAddress { get; set; }
+        public string? Address { get; set; }
+        public string? Nickname { get; set; }
 
         public UserForm()
         {
             InitializeComponent();
 
-            ActiveControl = nameOrAddressTextBox;
+            ActiveControl = addressTextBox;
         }
 
         private void okButton_Click(object sender, EventArgs e)
@@ -18,7 +19,8 @@
 
         private void CloseOk()
         {
-            NameOrAddress = nameOrAddressTextBox.Text;
+            Address = addressTextBox.Text;
+            Nickname = nicknameTextBox.Text;
 
             DialogResult = DialogResult.OK;
             Close();

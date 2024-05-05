@@ -43,6 +43,7 @@
             deleteUserButton = new Button();
             dataGridView = new DataGridView();
             nameOrAddressDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
+            Nickname = new DataGridViewTextBoxColumn();
             statusStringDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
             atWorkDataGridViewCheckBoxColumn = new DataGridViewCheckBoxColumn();
             datagridUserItemBindingSource = new BindingSource(components);
@@ -162,7 +163,7 @@
             dataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridView.AutoGenerateColumns = false;
             dataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView.Columns.AddRange(new DataGridViewColumn[] { nameOrAddressDataGridViewTextBoxColumn, statusStringDataGridViewTextBoxColumn, atWorkDataGridViewCheckBoxColumn });
+            dataGridView.Columns.AddRange(new DataGridViewColumn[] { nameOrAddressDataGridViewTextBoxColumn, Nickname, statusStringDataGridViewTextBoxColumn, atWorkDataGridViewCheckBoxColumn });
             dataGridView.DataSource = datagridUserItemBindingSource;
             dataGridView.Location = new Point(280, 12);
             dataGridView.Name = "dataGridView";
@@ -175,10 +176,18 @@
             // nameOrAddressDataGridViewTextBoxColumn
             // 
             nameOrAddressDataGridViewTextBoxColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            nameOrAddressDataGridViewTextBoxColumn.DataPropertyName = "NameOrAddress";
-            nameOrAddressDataGridViewTextBoxColumn.HeaderText = "Имя или адрес";
+            nameOrAddressDataGridViewTextBoxColumn.DataPropertyName = "Address";
+            nameOrAddressDataGridViewTextBoxColumn.HeaderText = "Адрес";
             nameOrAddressDataGridViewTextBoxColumn.Name = "nameOrAddressDataGridViewTextBoxColumn";
             nameOrAddressDataGridViewTextBoxColumn.ReadOnly = true;
+            // 
+            // Nickname
+            // 
+            Nickname.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            Nickname.DataPropertyName = "Nickname";
+            Nickname.HeaderText = "Имя";
+            Nickname.Name = "Nickname";
+            Nickname.ReadOnly = true;
             // 
             // statusStringDataGridViewTextBoxColumn
             // 
@@ -192,13 +201,13 @@
             // 
             atWorkDataGridViewCheckBoxColumn.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             atWorkDataGridViewCheckBoxColumn.DataPropertyName = "AtWork";
-            atWorkDataGridViewCheckBoxColumn.HeaderText = "На работе";
+            atWorkDataGridViewCheckBoxColumn.HeaderText = "В сети";
             atWorkDataGridViewCheckBoxColumn.Name = "atWorkDataGridViewCheckBoxColumn";
             atWorkDataGridViewCheckBoxColumn.ReadOnly = true;
             // 
             // datagridUserItemBindingSource
             // 
-            datagridUserItemBindingSource.DataSource = typeof(DatagridUserItem);
+            datagridUserItemBindingSource.DataSource = typeof(DataGridUserItem);
             // 
             // showUsersButton
             // 
@@ -206,7 +215,7 @@
             showUsersButton.Name = "showUsersButton";
             showUsersButton.Size = new Size(262, 36);
             showUsersButton.TabIndex = 14;
-            showUsersButton.Text = "Показать пользователей в сети";
+            showUsersButton.Text = "Показать список адресов";
             showUsersButton.UseVisualStyleBackColor = true;
             showUsersButton.Click += showLocalAddressButton_Click;
             // 
@@ -251,9 +260,10 @@
         private Button deleteUserButton;
         private DataGridView dataGridView;
         private BindingSource datagridUserItemBindingSource;
+        private Button showUsersButton;
         private DataGridViewTextBoxColumn nameOrAddressDataGridViewTextBoxColumn;
+        private DataGridViewTextBoxColumn Nickname;
         private DataGridViewTextBoxColumn statusStringDataGridViewTextBoxColumn;
         private DataGridViewCheckBoxColumn atWorkDataGridViewCheckBoxColumn;
-        private Button showUsersButton;
     }
 }

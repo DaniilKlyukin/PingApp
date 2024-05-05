@@ -8,7 +8,7 @@ namespace PingApp
         [DataMember(Name = "Дата-время")]
         public DateTime DateTime { get; set; }
 
-        [DataMember(Name = "На работе")]
+        [DataMember(Name = "В сети")]
         public bool AtWork { get; set; }
 
         public WorkStatus(

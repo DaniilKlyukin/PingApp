@@ -228,7 +228,7 @@
             Controls.Add(startButton);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "MainForm";
-            Text = "Защита компьютера";
+            Text = "Сканер компьютеров в сети";
             ((System.ComponentModel.ISupportInitialize)checkPeriodNumeric).EndInit();
             ((System.ComponentModel.ISupportInitialize)dataGridView).EndInit();
             ((System.ComponentModel.ISupportInitialize)datagridUserItemBindingSource).EndInit();

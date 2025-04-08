@@ -7,6 +7,12 @@ namespace PingApp
 
     public class Pinger
     {
+        public event UserLogged? OnLoggedIn;
+        public event UserLogged? OnLoggedOut;
+
+        private Dictionary<string, Stack<WorkStatus>> statistics = new();
+        private Dictionary<string, string> addressNicknames = new();
+
         public Pinger()
         {
 
@@ -33,11 +39,7 @@ namespace PingApp
             }
         }
 
-        public event UserLogged? OnLoggedIn;
-        public event UserLogged? OnLoggedOut;
-
-        private Dictionary<string, Stack<WorkStatus>> statistics = new();
-        private Dictionary<string, string> addressNicknames = new();
+        public int UsersCount => statistics.Count;
 
         public IEnumerator<UserStatistics> GetEnumerator()
         {

@@ -1,14 +1,11 @@
-using System.Net.Sockets;
-using System.Net;
-using System.Diagnostics;
 using System.Text;
 
 namespace PingApp
 {
     public partial class MainForm : Form
     {
-        Pinger pinger = new Pinger();
-        string fileName = "statistics.json";
+        private readonly Pinger pinger = new Pinger();
+        private readonly string fileName = "statistics.json";
 
         public MainForm()
         {
@@ -26,6 +23,19 @@ namespace PingApp
             pinger.OnLoggedOut += userLoggedOut;
 
             timer.Interval = (int)checkPeriodNumeric.Value * 1000;
+
+            updateStartButton();
+            updateStopButton();
+        }
+
+        private void updateStartButton()
+        {
+            startButton.Enabled = !timer.Enabled && pinger.UsersCount > 0;
+        }
+
+        private void updateStopButton()
+        {
+            stopButton.Enabled = timer.Enabled;
         }
 
         private void userLoggedIn(UserStatus status)
@@ -54,11 +64,15 @@ namespace PingApp
         private void startButton_Click(object sender, EventArgs e)
         {
             timer.Start();
+            updateStartButton();
+            updateStopButton();
         }
 
         private void stopButton_Click(object sender, EventArgs e)
         {
             timer.Stop();
+            updateStartButton();
+            updateStopButton();
         }
 
         private void timer_Tick(object sender, EventArgs e)
@@ -156,7 +170,10 @@ namespace PingApp
 
         private void clearButton_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Вы уверены? Файл будет удален.", "Удаление статистики", MessageBoxButtons.OKCancel, MessageBoxIcon.Question) == DialogResult.OK)
+            if (MessageBox.Show("Вы уверены? Файл будет удален.",
+                "Удаление статистики",
+                MessageBoxButtons.OKCancel,
+                MessageBoxIcon.Question) == DialogResult.OK)
             {
                 File.Delete(fileName);
                 pinger.ClearSatistics();
@@ -174,13 +191,16 @@ namespace PingApp
 
             if (userForm.ShowDialog() == DialogResult.OK && !string.IsNullOrEmpty(userForm.Address))
             {
-                MessageBox.Show("Пользователь добавлен");
+                MessageBox.Show($"Пользователь {userForm.Nickname} добавлен",
+                    "Новый пользователь", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 pinger.AddUser(userForm.Address);
 
                 if (userForm.Nickname != null)
                     pinger.AddNickname(userForm.Address, userForm.Nickname);
 
                 UpdateDataGrid();
+                updateStartButton();
+                updateStopButton();
             }
         }
 
@@ -197,13 +217,26 @@ namespace PingApp
 
         private void deleteUsers()
         {
-            foreach (var item in getSelectedDatagridItems())
+            var toDelete = getSelectedDatagridItems()
+                .Where(x => x.Address != null)
+                .ToArray();
+
+            if (toDelete.Length == 0)
+                return;
+
+            if (MessageBox.Show($"Вы уверены, что хотите удалить {toDelete.Length} пользователей",
+                "Удаление пользователей", MessageBoxButtons.OKCancel, MessageBoxIcon.Question)
+                == DialogResult.Cancel)
+                return;
+
+            foreach (var item in toDelete)
             {
-                if (item.Address != null)
-                    pinger.RemoveUser(item.Address);
+                pinger.RemoveUser(item.Address);
             }
 
             UpdateDataGrid();
+            updateStartButton();
+            updateStopButton();
         }
 
         private IEnumerable<DataGridUserItem> getSelectedDatagridItems()

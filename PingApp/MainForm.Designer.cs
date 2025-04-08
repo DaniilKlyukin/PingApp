@@ -60,6 +60,7 @@
             // 
             // startButton
             // 
+            startButton.Enabled = false;
             startButton.Location = new Point(12, 12);
             startButton.Name = "startButton";
             startButton.Size = new Size(128, 36);
@@ -70,6 +71,7 @@
             // 
             // stopButton
             // 
+            stopButton.Enabled = false;
             stopButton.Location = new Point(146, 12);
             stopButton.Name = "stopButton";
             stopButton.Size = new Size(128, 36);
@@ -127,6 +129,7 @@
             // 
             // checkPeriodNumeric
             // 
+            checkPeriodNumeric.DecimalPlaces = 1;
             checkPeriodNumeric.Location = new Point(150, 96);
             checkPeriodNumeric.Maximum = new decimal(new int[] { 10000000, 0, 0, 0 });
             checkPeriodNumeric.Minimum = new decimal(new int[] { 1, 0, 0, 0 });

@@ -10,8 +10,9 @@ namespace PingApp
         public event UserLogged? OnLoggedIn;
         public event UserLogged? OnLoggedOut;
 
-        private Dictionary<string, Stack<WorkStatus>> statistics = new();
-        private Dictionary<string, string> addressNicknames = new();
+        private readonly Dictionary<string, Stack<WorkStatus>> statistics = new();
+        private readonly Dictionary<string, string> addressNicknames = new();
+        private readonly object lockObject = new();
 
         public Pinger()
         {
@@ -132,22 +133,31 @@ namespace PingApp
             return statistics[address].Reverse().ToList();
         }
 
-        public async void UpdateStatistics()
+        public async Task UpdateStatisticsAsync()
         {
             var userStatusTasks = new List<Task<UserStatus>>();
 
-            foreach (var (nameOrAddress, stack) in statistics)
+            List<string> addresses;
+            lock (lockObject)
+            {
+                addresses = statistics.Keys.ToList();
+            }
+
+            foreach (var address in addresses)
             {
                 userStatusTasks.Add(
                     Task.Run(
-                        () => new UserStatus(DateTime.Now, nameOrAddress, pingHost(nameOrAddress))));
+                        () => new UserStatus(DateTime.Now, address, pingHost(address))));
             }
 
             var userStatuses = await Task.WhenAll(userStatusTasks);
 
-            foreach (var userStatus in userStatuses)
+            lock (lockObject)
             {
-                addStatistic(userStatus);
+                foreach (var userStatus in userStatuses)
+                {
+                    addStatistic(userStatus);
+                }
             }
         }
 
@@ -161,7 +171,7 @@ namespace PingApp
 
         private bool pingHost(string nameOrAddress)
         {
-            var ping = new Ping();
+            using var ping = new Ping();
             try
             {
                 PingReply reply = ping.Send(nameOrAddress);

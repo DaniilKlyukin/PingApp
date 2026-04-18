@@ -75,14 +75,22 @@ namespace PingApp
             updateStopButton();
         }
 
-        private void timer_Tick(object sender, EventArgs e)
+        private async void timer_Tick(object sender, EventArgs e)
         {
-            pinger.UpdateStatistics();
+            try
+            {
+                await pinger.UpdateStatisticsAsync();
 
-            UpdateDataGrid();
+                UpdateDataGrid();
 
-            if (saveCheckBox.Checked)
-                SaveToFile();
+                if (saveCheckBox.Checked)
+                    SaveToFile();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при обновлении статистики: {ex.Message}",
+                    "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         private void UpdateDataGrid()
@@ -137,9 +145,16 @@ namespace PingApp
 
         private void SaveToFile()
         {
-            var json = PingerJson.Serialize(pinger);
-
-            File.WriteAllText(fileName, json);
+            try
+            {
+                var json = PingerJson.Serialize(pinger);
+                File.WriteAllText(fileName, json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при сохранении файла: {ex.Message}",
+                    "Ошибка сохранения", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         private void notifyIcon_MouseDoubleClick(object sender, MouseEventArgs e)

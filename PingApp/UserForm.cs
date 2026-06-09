@@ -1,8 +1,15 @@
-﻿namespace PingApp
+﻿using System.ComponentModel;
+
+namespace PingApp
 {
     public partial class UserForm : Form
     {
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string? Address { get; set; }
+
+        [Browsable(false)]
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public string? Nickname { get; set; }
 
         public UserForm()

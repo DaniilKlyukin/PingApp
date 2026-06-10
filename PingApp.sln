@@ -1,9 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.7.34024.191
+# Visual Studio Version 18
+VisualStudioVersion = 18.6.11819.183
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingApp", "PingApp\PingApp.csproj", "{28CFD01F-8C5F-454B-BD58-0329F1592921}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingApp.Infrastructure", "PingApp.Infrastructure\PingApp.Infrastructure.csproj", "{C83AB4E0-F032-478C-9EA2-549D598B203B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingApp.WinForms", "PingApp.WinForms\PingApp.WinForms.csproj", "{F023F7EC-3E1F-4427-9791-C2C4F8BAD77F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingApp.Domain", "PingApp.Domain\PingApp.Domain.csproj", "{CD1E7221-F555-4C04-8B22-A40823968700}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingApp.Application", "PingApp.Application\PingApp.Application.csproj", "{72D0595A-9AD9-4D13-4040-A2015CB8F862}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PingApp.Worker", "PingApp.Worker\PingApp.Worker.csproj", "{EE61BD03-EB2C-438E-B2F8-FE94DE12B0E6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +19,26 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{28CFD01F-8C5F-454B-BD58-0329F1592921}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{28CFD01F-8C5F-454B-BD58-0329F1592921}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{28CFD01F-8C5F-454B-BD58-0329F1592921}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{28CFD01F-8C5F-454B-BD58-0329F1592921}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C83AB4E0-F032-478C-9EA2-549D598B203B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C83AB4E0-F032-478C-9EA2-549D598B203B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C83AB4E0-F032-478C-9EA2-549D598B203B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C83AB4E0-F032-478C-9EA2-549D598B203B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F023F7EC-3E1F-4427-9791-C2C4F8BAD77F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F023F7EC-3E1F-4427-9791-C2C4F8BAD77F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F023F7EC-3E1F-4427-9791-C2C4F8BAD77F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F023F7EC-3E1F-4427-9791-C2C4F8BAD77F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD1E7221-F555-4C04-8B22-A40823968700}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD1E7221-F555-4C04-8B22-A40823968700}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD1E7221-F555-4C04-8B22-A40823968700}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD1E7221-F555-4C04-8B22-A40823968700}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72D0595A-9AD9-4D13-4040-A2015CB8F862}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72D0595A-9AD9-4D13-4040-A2015CB8F862}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72D0595A-9AD9-4D13-4040-A2015CB8F862}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72D0595A-9AD9-4D13-4040-A2015CB8F862}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE61BD03-EB2C-438E-B2F8-FE94DE12B0E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE61BD03-EB2C-438E-B2F8-FE94DE12B0E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE61BD03-EB2C-438E-B2F8-FE94DE12B0E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE61BD03-EB2C-438E-B2F8-FE94DE12B0E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

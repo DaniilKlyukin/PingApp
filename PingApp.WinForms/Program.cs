@@ -47,7 +47,7 @@ internal static class Program
             cts.Cancel();
             await host.StopAsync();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not HostAbortedException)
         {
             Log.Fatal(ex, "Критическая ошибка при запуске или работе приложения");
         }
@@ -73,5 +73,6 @@ internal static class Program
         services.AddTransient<MainForm>();
         services.AddTransient<LocalAddressForm>();
         services.AddTransient<UserForm>();
+        services.AddTransient<DiscoverHostsForm>();
     }
 }

@@ -1,12 +1,14 @@
-﻿using FluentValidation;
-using PingApp.Domain.Entities;
-using System.ComponentModel;
+﻿using System.ComponentModel;
+using FluentValidation;
+using Microsoft.Extensions.DependencyInjection;
+using PingApp.Application.Features.Devices;
 
 namespace PingApp.WinForms;
 
 public partial class UserForm : Form
 {
-    private readonly IValidator<Device> _validator;
+    private readonly IValidator<AddDevice.Command> _validator;
+    private readonly IServiceProvider _serviceProvider;
 
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -16,9 +18,10 @@ public partial class UserForm : Form
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string? Nickname { get; set; }
 
-    public UserForm(IValidator<Device> validator)
+    public UserForm(IValidator<AddDevice.Command> validator, IServiceProvider serviceProvider)
     {
         _validator = validator;
+        _serviceProvider = serviceProvider;
         InitializeComponent();
         ActiveControl = addressTextBox;
     }
@@ -30,13 +33,12 @@ public partial class UserForm : Form
 
     private void CloseOk()
     {
-        var tempDevice = new Device
-        {
-            Address = addressTextBox.Text.Trim(),
-            Nickname = string.IsNullOrWhiteSpace(nicknameTextBox.Text) ? null : nicknameTextBox.Text.Trim()
-        };
+        var command = new AddDevice.Command(
+            addressTextBox.Text.Trim(),
+            string.IsNullOrWhiteSpace(nicknameTextBox.Text) ? null : nicknameTextBox.Text.Trim()
+        );
 
-        var validationResult = _validator.Validate(tempDevice);
+        var validationResult = _validator.Validate(command);
 
         if (!validationResult.IsValid)
         {
@@ -45,11 +47,20 @@ public partial class UserForm : Form
             return;
         }
 
-        Address = tempDevice.Address;
-        Nickname = tempDevice.Nickname;
+        Address = command.Address;
+        Nickname = command.Nickname;
 
         DialogResult = DialogResult.OK;
         Close();
+    }
+
+    private void findIpButton_Click(object sender, EventArgs e)
+    {
+        using var discoverForm = _serviceProvider.GetRequiredService<DiscoverHostsForm>();
+        if (discoverForm.ShowDialog() == DialogResult.OK && !string.IsNullOrEmpty(discoverForm.SelectedIp))
+        {
+            addressTextBox.Text = discoverForm.SelectedIp;
+        }
     }
 
     private void nameOrAddressTextBox_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)

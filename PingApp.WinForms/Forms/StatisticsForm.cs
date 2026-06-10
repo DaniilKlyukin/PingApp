@@ -1,5 +1,4 @@
 ﻿using PingApp.Application.Features.Statistics;
-using PingApp.WinForms.Models;
 using ScottPlot;
 
 namespace PingApp.WinForms
@@ -21,7 +20,7 @@ namespace PingApp.WinForms
         {
             formsPlot.Plot.Clear();
 
-            var activeItems = statistics.Where(t => t.Statuses.Count >= 2).ToList();
+            var activeItems = statistics.Where(t => t.Statuses.Count >= 1).ToList();
 
             if (activeItems.Count == 0)
             {
@@ -32,10 +31,19 @@ namespace PingApp.WinForms
 
             foreach (var stat in activeItems)
             {
-                double[] xs = stat.Statuses.Select(s => s.DateTime.ToOADate()).ToArray();
-                double[] ys = stat.Statuses.Select(s => s.AtWork ? 1.0 : 0.0).ToArray();
+                var orderedStatuses = stat.Statuses.OrderBy(s => s.DateTime).ToList();
 
-                string name = stat.Address;
+                if (orderedStatuses.Count > 0)
+                {
+                    var lastKnownStatus = orderedStatuses[^1];
+
+                    orderedStatuses.Add(new WorkStatus(DateTime.Now, lastKnownStatus.AtWork));
+                }
+
+                var xs = orderedStatuses.Select(s => s.DateTime.ToOADate()).ToArray();
+                var ys = orderedStatuses.Select(s => s.AtWork ? 1.0 : 0.0).ToArray();
+
+                var name = stat.Address;
                 if (!string.IsNullOrEmpty(stat.Nickname))
                 {
                     name += $" ({stat.Nickname})";
@@ -51,8 +59,13 @@ namespace PingApp.WinForms
 
             formsPlot.Plot.Axes.DateTimeTicksBottom();
 
-            double[] yPositions = { 0, 1 };
-            string[] yLabels = { "Не в сети", "В сети" };
+            if (formsPlot.Plot.Axes.Bottom.TickGenerator is ScottPlot.TickGenerators.DateTimeAutomatic dtGen)
+            {
+                dtGen.LabelFormatter = dt => dt.ToString("dd.MM.yyyy\nHH:mm");
+            }
+
+            var yPositions = new double[] { 0, 1 };
+            var yLabels = new string[] { "Не в сети", "В сети" };
 
             formsPlot.Plot.Axes.Left.SetTicks(yPositions, yLabels);
 

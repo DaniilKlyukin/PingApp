@@ -17,12 +17,21 @@ partial class UserForm
 
     private void InitializeComponent()
     {
+        findIpButton = new Button();
         okButton = new Button();
         addressTextBox = new TextBox();
         label1 = new Label();
         label2 = new Label();
         nicknameTextBox = new TextBox();
         SuspendLayout();
+        // 
+        // findIpButton
+        // 
+        findIpButton.Location = new Point(255, 12); // Справа от addressTextBox
+        findIpButton.Name = "findIpButton";
+        findIpButton.Size = new Size(28, 23);
+        findIpButton.Text = "...";
+        findIpButton.Click += new EventHandler(this.findIpButton_Click);
         // 
         // okButton
         // 
@@ -40,7 +49,7 @@ partial class UserForm
         addressTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         addressTextBox.Location = new Point(61, 12);
         addressTextBox.Name = "addressTextBox";
-        addressTextBox.Size = new Size(222, 23);
+        addressTextBox.Size = new Size(188, 23);
         addressTextBox.TabIndex = 0;
         addressTextBox.PreviewKeyDown += nameOrAddressTextBox_PreviewKeyDown;
         // 
@@ -81,6 +90,7 @@ partial class UserForm
         Controls.Add(label1);
         Controls.Add(addressTextBox);
         Controls.Add(okButton);
+        Controls.Add(findIpButton);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
@@ -93,6 +103,7 @@ partial class UserForm
 
     #endregion
 
+    private Button findIpButton;
     private Button okButton;
     private TextBox addressTextBox;
     private Label label1;

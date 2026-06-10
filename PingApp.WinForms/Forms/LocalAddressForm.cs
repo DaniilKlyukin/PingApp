@@ -33,7 +33,7 @@ namespace PingApp.WinForms
 
             try
             {
-                string hostName = Dns.GetHostName();
+                var hostName = Dns.GetHostName();
                 var hostEntry = Dns.GetHostEntry(hostName);
 
                 foreach (var ip in hostEntry.AddressList)

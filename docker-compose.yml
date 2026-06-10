@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: pingapp-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: pingapp_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pingapp-pgdata:/var/lib/postgresql/data
+    networks:
+      - pingapp-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pingapp-pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    networks:
+      - pingapp-net
+    depends_on:
+      - postgres
+
+  backend-worker:
+    image: pingapp-backend-worker:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pingapp-worker-service
+    restart: always
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=pingapp-db;Database=pingapp_db;Username=postgres;Password=your_password
+    networks:
+      - pingapp-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+networks:
+  pingapp-net:
+    driver: bridge
+
+volumes:
+  pingapp-pgdata:

@@ -16,9 +16,6 @@ public static class AddDevice
             RuleFor(x => x.Address)
                 .NotEmpty().WithMessage("Адрес устройства не должен быть пустым.")
                 .Must(BeValidHostOrIp).WithMessage("Некорректный IP-адрес или доменное имя.");
-
-            RuleFor(x => x.Nickname)
-                .MaximumLength(100).WithMessage("Имя не должно превышать 100 символов.");
         }
 
         private bool BeValidHostOrIp(string address)
@@ -32,25 +29,24 @@ public static class AddDevice
     public class Handler : IRequestHandler<Command, Unit>
     {
         private readonly IDeviceRepository _repository;
+        private readonly IUserContext _userContext;
 
-        public Handler(IDeviceRepository repository)
+        public Handler(IDeviceRepository repository, IUserContext userContext)
         {
             _repository = repository;
+            _userContext = userContext;
         }
 
         public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
         {
             var addressTrimmed = request.Address.Trim();
-            var exists = await _repository.ExistsAsync(addressTrimmed, cancellationToken);
-            if (exists) return Unit.Value;
 
-            var device = new Device
-            {
-                Address = addressTrimmed,
-                Nickname = request.Nickname?.Trim()
-            };
+            var alreadySubscribed = await _repository.ExistsSubscriptionAsync(_userContext.UserId, addressTrimmed, cancellationToken);
+            if (alreadySubscribed) return Unit.Value;
 
-            await _repository.AddAsync(device, cancellationToken);
+            var device = new Device { Address = addressTrimmed };
+
+            await _repository.AddSubscriptionAsync(_userContext.UserId, device, request.Nickname?.Trim(), cancellationToken);
             return Unit.Value;
         }
     }

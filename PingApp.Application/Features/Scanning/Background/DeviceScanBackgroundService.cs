@@ -33,13 +33,10 @@ public class DeviceScanBackgroundService : BackgroundService
         {
             try
             {
-                if (_config.IsEnabled)
-                {
-                    using var scope = _scopeFactory.CreateScope();
-                    var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                using var scope = _scopeFactory.CreateScope();
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-                    await mediator.Send(new ScanAllDevices.Command(), stoppingToken);
-                }
+                await mediator.Send(new ScanAllDevices.Command(), stoppingToken);
             }
             catch (Exception ex)
             {

@@ -10,15 +10,17 @@ public static class RemoveDevice
     public class Handler : IRequestHandler<Command, Unit>
     {
         private readonly IDeviceRepository _repository;
+        private readonly IUserContext _userContext;
 
-        public Handler(IDeviceRepository repository)
+        public Handler(IDeviceRepository repository, IUserContext userContext)
         {
             _repository = repository;
+            _userContext = userContext;
         }
 
         public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
         {
-            await _repository.DeleteAsync(request.Address, cancellationToken);
+            await _repository.RemoveSubscriptionAsync(_userContext.UserId, request.Address, cancellationToken);
             return Unit.Value;
         }
     }

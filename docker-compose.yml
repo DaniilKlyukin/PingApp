@@ -43,7 +43,7 @@ services:
     container_name: pingapp-worker-service
     restart: always
     environment:
-      - ConnectionStrings__DefaultConnection=Host=pingapp-db;Database=pingapp_db;Username=postgres;Password=your_password
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=pingapp_db;Username=postgres;Password=your_password
     networks:
       - pingapp-net
     depends_on:

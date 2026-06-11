@@ -7,21 +7,18 @@ public class PingDbContext : DbContext
 {
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<StatusRecord> Statuses => Set<StatusRecord>();
-
+    public DbSet<User> Users => Set<User>();
+    public DbSet<UserDevice> UserDevices => Set<UserDevice>();
+    public DbSet<GlobalSetting> GlobalSettings => Set<GlobalSetting>();
+    
     public PingDbContext(DbContextOptions<PingDbContext> options) : base(options)
     {
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Device>()
-            .HasIndex(d => d.Address)
-            .IsUnique();
+        base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Device>()
-            .HasMany(d => d.Statuses)
-            .WithOne(s => s.Device)
-            .HasForeignKey(s => s.DeviceId)
-            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(PingDbContext).Assembly);
     }
 }

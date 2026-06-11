@@ -34,7 +34,7 @@ public static class ScanAllDevices
 
         public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
         {
-            var devices = await _repository.GetAllWithStatusesAsync(cancellationToken);
+            var devices = await _repository.GetAllTrackedDevicesAsync(cancellationToken);
 
             var tasks = devices.Select(async device =>
             {
@@ -50,11 +50,10 @@ public static class ScanAllDevices
                         if (transition != DeviceStatusTransition.None)
                         {
                             await _mediator.Publish(new DeviceStatusChanged.Notification(
-                                device.Address,
-                                device.Nickname,
-                                transition == DeviceStatusTransition.LoggedIn,
-                                DateTime.Now
-                            ), cancellationToken);
+                                 device.Address,
+                                 transition == DeviceStatusTransition.LoggedIn,
+                                 DateTime.Now
+                             ), cancellationToken);
                         }
                     }
                 }

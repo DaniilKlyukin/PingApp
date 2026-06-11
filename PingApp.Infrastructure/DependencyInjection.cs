@@ -18,6 +18,8 @@ public static class DependencyInjection
             options.UseNpgsql(connectionString), ServiceLifetime.Scoped);
 
         services.AddScoped<IDeviceRepository, DeviceRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IGlobalSettingsRepository, GlobalSettingsRepository>();
 
         services.AddSingleton<IPingService, PingService>();
 

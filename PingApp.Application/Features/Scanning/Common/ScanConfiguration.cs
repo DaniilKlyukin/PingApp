@@ -6,15 +6,8 @@
 public class ScanConfiguration : IScanConfiguration
 {
     private readonly object _lock = new();
-    private bool _isEnabled = false;
     private TimeSpan _interval = TimeSpan.FromSeconds(10);
     private bool _saveToDatabase = true;
-
-    public bool IsEnabled
-    {
-        get { lock (_lock) return _isEnabled; }
-        set { lock (_lock) _isEnabled = value; }
-    }
 
     public TimeSpan Interval
     {

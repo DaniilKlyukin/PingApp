@@ -5,6 +5,7 @@ using PingApp.Application.Features.Devices;
 using PingApp.Application.Features.Scanning;
 using PingApp.Application.Features.Scanning.Common;
 using PingApp.Application.Features.Statistics;
+using PingApp.Application.Interfaces;
 using PingApp.WinForms.Models;
 
 namespace PingApp.WinForms;
@@ -12,21 +13,18 @@ namespace PingApp.WinForms;
 public partial class MainForm : Form
 {
     private readonly IMediator _mediator;
-    private readonly IScanConfiguration _scanConfig;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MainForm> _logger;
     private readonly BindingSource _bindingSource = new();
 
     public MainForm(
         IMediator mediator,
-        IScanConfiguration scanConfig,
         IUiEventBridge uiEventBridge,
         IServiceProvider serviceProvider,
         ILogger<MainForm> logger)
     {
         InitializeComponent();
         _mediator = mediator;
-        _scanConfig = scanConfig;
         _serviceProvider = serviceProvider;
         _logger = logger;
 
@@ -36,7 +34,9 @@ public partial class MainForm : Form
     private async void MainForm_Load(object sender, EventArgs e)
     {
         await RefreshDataGridAsync();
-        startButton.Enabled = true;
+
+        var userContext = _serviceProvider.GetRequiredService<IUserContext>();
+        adminButton.Visible = userContext.IsAdmin;
     }
 
     private async Task RefreshDataGridAsync()
@@ -62,42 +62,9 @@ public partial class MainForm : Form
         }
     }
 
-    private async void startButton_Click(object sender, EventArgs e)
-    {
-        startButton.Enabled = false;
-        stopButton.Enabled = true;
-
-        _scanConfig.Interval = TimeSpan.FromSeconds((double)checkPeriodNumeric.Value);
-        _scanConfig.SaveToDatabase = saveCheckBox.Checked;
-        _scanConfig.IsEnabled = true;
-
-        timer.Interval = (int)(checkPeriodNumeric.Value * 1000);
-        timer.Start();
-
-        await _mediator.Send(new ScanAllDevices.Command());
-        await RefreshDataGridAsync();
-    }
-
-    private void stopButton_Click(object sender, EventArgs e)
-    {
-        _scanConfig.IsEnabled = false;
-        timer.Stop();
-        startButton.Enabled = true;
-        stopButton.Enabled = false;
-    }
-
     private async void timer_Tick(object sender, EventArgs e)
     {
         await RefreshDataGridAsync();
-    }
-
-    private void checkPeriodNumeric_ValueChanged(object sender, EventArgs e)
-    {
-        _scanConfig.Interval = TimeSpan.FromSeconds((double)checkPeriodNumeric.Value);
-        if (timer.Enabled)
-        {
-            timer.Interval = (int)(checkPeriodNumeric.Value * 1000);
-        }
     }
 
     private void OnDeviceStatusChanged(DeviceStatusChanged.Notification notification)
@@ -108,13 +75,24 @@ public partial class MainForm : Form
             return;
         }
 
-        var deviceLabel = notification.Nickname ?? notification.Address;
+        string deviceLabel = notification.Address;
+        if (_bindingSource.DataSource is List<DataGridUserItem> items)
+        {
+            var matchedItem = items.FirstOrDefault(i => i.Address == notification.Address);
+            if (matchedItem != null && !string.IsNullOrEmpty(matchedItem.NickName))
+            {
+                deviceLabel = $"{matchedItem.NickName} ({notification.Address})";
+            }
+        }
+
+        var localTime = notification.DateTime.ToLocalTime();
+
         if (notification.AtWork)
         {
             notifyIcon.ShowBalloonTip(
                 3000,
                 "Устройство вошло в сеть",
-                $"{deviceLabel} теперь доступен ({notification.DateTime:HH:mm:ss})",
+                $"{deviceLabel} теперь доступен ({localTime:HH:mm:ss})",
                 ToolTipIcon.Info);
         }
         else
@@ -122,7 +100,7 @@ public partial class MainForm : Form
             notifyIcon.ShowBalloonTip(
                 3000,
                 "Устройство отключилось",
-                $"{deviceLabel} покинул сеть ({notification.DateTime:HH:mm:ss})",
+                $"{deviceLabel} покинул сеть ({localTime:HH:mm:ss})",
                 ToolTipIcon.Warning);
         }
     }
@@ -147,14 +125,13 @@ public partial class MainForm : Form
         if (dataGridView.CurrentRow?.DataBoundItem is DataGridUserItem selectedItem)
         {
             var confirmResult = MessageBox.Show(
-                $"Вы действительно хотите удалить {selectedItem.Address}?",
-                "Подтверждение удаления",
+                $"Вы действительно хотите прекратить слежение за {selectedItem.Address}?",
+                "Подтверждение",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
 
             if (confirmResult == DialogResult.Yes)
             {
-                // Удаляем устройство через команду MediatR
                 await _mediator.Send(new RemoveDevice.Command(selectedItem.Address));
                 await RefreshDataGridAsync();
             }
@@ -169,31 +146,15 @@ public partial class MainForm : Form
         }
     }
 
-    private async void clearButton_Click(object sender, EventArgs e)
+    private void adminButton_Click(object sender, EventArgs e)
     {
-        var confirmResult = MessageBox.Show(
-            "Вы уверены, что хотите очистить всю историю статусов для всех устройств?",
-            "Очистка статистики",
-            MessageBoxButtons.YesNo,
-            MessageBoxIcon.Warning);
-
-        if (confirmResult == DialogResult.Yes)
-        {
-            await _mediator.Send(new ClearStatisticsData.Command());
-            await RefreshDataGridAsync();
-        }
-    }
-
-    private void showLocalAddressButton_Click(object sender, EventArgs e)
-    {
-        var localAddressForm = _serviceProvider.GetRequiredService<LocalAddressForm>();
-        localAddressForm.Show();
+        var adminForm = _serviceProvider.GetRequiredService<AdminForm>();
+        adminForm.ShowDialog();
     }
 
     private async void showPlotButton_Click(object sender, EventArgs e)
     {
         var statistics = await _mediator.Send(new GetStatisticsList.Query());
-
         var statForm = new StatisticsForm(statistics);
         statForm.Show();
     }
@@ -210,5 +171,11 @@ public partial class MainForm : Form
             Hide();
             WindowState = FormWindowState.Minimized;
         }
+    }
+
+    private void showLocalAddressButton_Click(object sender, EventArgs e)
+    {
+        var localAddressForm = _serviceProvider.GetRequiredService<LocalAddressForm>();
+        localAddressForm.Show();
     }
 }

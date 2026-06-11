@@ -5,7 +5,6 @@
 /// </summary>
 public interface IScanConfiguration
 {
-    bool IsEnabled { get; set; }
     TimeSpan Interval { get; set; }
     bool SaveToDatabase { get; set; }
 }

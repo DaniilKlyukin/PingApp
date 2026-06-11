@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PingApp.Infrastructure.Data;
@@ -11,9 +12,11 @@ using PingApp.Infrastructure.Data;
 namespace PingApp.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(PingDbContext))]
-    partial class PingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260611135939_AddUser")]
+    partial class AddUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,29 +37,12 @@ namespace PingApp.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("IsAllowedToPing")
-                        .HasColumnType("boolean");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Address")
                         .IsUnique();
 
                     b.ToTable("Devices");
-                });
-
-            modelBuilder.Entity("PingApp.Domain.Entities.GlobalSetting", b =>
-                {
-                    b.Property<string>("Key")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Key");
-
-                    b.ToTable("GlobalSettings");
                 });
 
             modelBuilder.Entity("PingApp.Domain.Entities.StatusRecord", b =>
@@ -90,9 +76,6 @@ namespace PingApp.Infrastructure.Data.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsAdmin")
-                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsGuest")
                         .HasColumnType("boolean");

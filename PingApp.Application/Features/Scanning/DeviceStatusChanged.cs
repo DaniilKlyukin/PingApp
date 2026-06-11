@@ -10,7 +10,6 @@ public static class DeviceStatusChanged
 {
     public record Notification(
         string Address,
-        string? Nickname,
         bool AtWork,
         DateTime DateTime) : INotification;
 

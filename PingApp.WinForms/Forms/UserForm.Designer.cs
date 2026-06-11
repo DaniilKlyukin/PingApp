@@ -17,21 +17,12 @@ partial class UserForm
 
     private void InitializeComponent()
     {
-        findIpButton = new Button();
         okButton = new Button();
-        addressTextBox = new TextBox();
+        addressComboBox = new ComboBox();
         label1 = new Label();
         label2 = new Label();
         nicknameTextBox = new TextBox();
         SuspendLayout();
-        // 
-        // findIpButton
-        // 
-        findIpButton.Location = new Point(255, 12); // Справа от addressTextBox
-        findIpButton.Name = "findIpButton";
-        findIpButton.Size = new Size(28, 23);
-        findIpButton.Text = "...";
-        findIpButton.Click += new EventHandler(this.findIpButton_Click);
         // 
         // okButton
         // 
@@ -44,14 +35,15 @@ partial class UserForm
         okButton.UseVisualStyleBackColor = true;
         okButton.Click += okButton_Click;
         // 
-        // addressTextBox
+        // addressComboBox
         // 
-        addressTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-        addressTextBox.Location = new Point(61, 12);
-        addressTextBox.Name = "addressTextBox";
-        addressTextBox.Size = new Size(188, 23);
-        addressTextBox.TabIndex = 0;
-        addressTextBox.PreviewKeyDown += nameOrAddressTextBox_PreviewKeyDown;
+        addressComboBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        addressComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+        addressComboBox.Location = new Point(61, 12);
+        addressComboBox.Name = "addressComboBox";
+        addressComboBox.Size = new Size(222, 23);
+        addressComboBox.TabIndex = 0;
+        addressComboBox.PreviewKeyDown += nameOrAddressTextBox_PreviewKeyDown;
         // 
         // label1
         // 
@@ -88,24 +80,23 @@ partial class UserForm
         Controls.Add(label2);
         Controls.Add(nicknameTextBox);
         Controls.Add(label1);
-        Controls.Add(addressTextBox);
+        Controls.Add(addressComboBox);
         Controls.Add(okButton);
-        Controls.Add(findIpButton);
         FormBorderStyle = FormBorderStyle.FixedDialog;
         MaximizeBox = false;
         MinimizeBox = false;
         Name = "UserForm";
         StartPosition = FormStartPosition.CenterParent;
         Text = "Пользователь";
+        Load += UserForm_Load;
         ResumeLayout(false);
         PerformLayout();
     }
 
     #endregion
 
-    private Button findIpButton;
     private Button okButton;
-    private TextBox addressTextBox;
+    private ComboBox addressComboBox;
     private Label label1;
     private Label label2;
     private TextBox nicknameTextBox;

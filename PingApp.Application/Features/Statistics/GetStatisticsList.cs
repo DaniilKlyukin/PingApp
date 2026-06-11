@@ -1,4 +1,6 @@
 ﻿using MediatR;
+using PingApp.Application.Features.Statistics.Common;
+using PingApp.Application.Features.Users;
 using PingApp.Application.Interfaces;
 
 namespace PingApp.Application.Features.Statistics;
@@ -10,41 +12,28 @@ public static class GetStatisticsList
     public class Handler : IRequestHandler<Query, List<UserStatistics>>
     {
         private readonly IDeviceRepository _repository;
+        private readonly IUserContext _userContext;
 
-        public Handler(IDeviceRepository repository)
+        public Handler(IDeviceRepository repository, IUserContext userContext)
         {
             _repository = repository;
+            _userContext = userContext;
         }
 
         public async Task<List<UserStatistics>> Handle(Query request, CancellationToken cancellationToken)
         {
-            var devices = await _repository.GetAllWithStatusesAsync(cancellationToken);
+            var userDevices = await _repository.GetUserDevicesAsync(_userContext.UserId, cancellationToken);
 
-            return devices.Select(d => new UserStatistics
+            return userDevices.Select(ud =>
             {
-                Address = d.Address,
-                Nickname = d.Nickname,
-                Statuses = d.Statuses.Select(s => new WorkStatus(s.DateTime, s.AtWork)).ToList()
+                var d = ud.Device;
+                return new UserStatistics
+                {
+                    Address = d.Address,
+                    Nickname = ud.Nickname,
+                    Statuses = d.Statuses.Select(s => new WorkStatus(s.DateTime, s.AtWork)).ToList()
+                };
             }).ToList();
         }
-    }
-}
-
-public class UserStatistics
-{
-    public required string Address { get; init; }
-    public string? Nickname { get; init; }
-    public required List<WorkStatus> Statuses { get; init; }
-}
-
-public class WorkStatus
-{
-    public DateTime DateTime { get; set; }
-    public bool AtWork { get; set; }
-
-    public WorkStatus(DateTime dateTime, bool atWork)
-    {
-        DateTime = dateTime;
-        AtWork = atWork;
     }
 }

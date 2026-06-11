@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PingApp.Application;
+using PingApp.Application.Features.Scanning.Common;
+using PingApp.Application.Interfaces;
 using PingApp.Infrastructure;
 using PingApp.Infrastructure.Data;
 using Serilog;
@@ -36,13 +38,36 @@ internal static class Program
             {
                 var db = scope.ServiceProvider.GetRequiredService<PingDbContext>();
                 await db.Database.MigrateAsync();
+
+                var settingsRepository = scope.ServiceProvider.GetRequiredService<IGlobalSettingsRepository>();
+                var intervalStr = await settingsRepository.GetSettingAsync("ScanIntervalSeconds", "10");
+                if (int.TryParse(intervalStr, out var intervalSeconds))
+                {
+                    var scanConfig = scope.ServiceProvider.GetRequiredService<IScanConfiguration>();
+                    scanConfig.Interval = TimeSpan.FromSeconds(intervalSeconds);
+                }
             }
 
             var cts = new CancellationTokenSource();
             var hostStartTask = host.StartAsync(cts.Token);
 
-            var mainForm = host.Services.GetRequiredService<MainForm>();
-            System.Windows.Forms.Application.Run(mainForm);
+            using (var scope = host.Services.CreateScope())
+            {
+                var loginForm = scope.ServiceProvider.GetRequiredService<LoginForm>();
+
+                if (loginForm.ShowDialog() == DialogResult.OK)
+                {
+                    var mainForm = host.Services.GetRequiredService<MainForm>();
+                    System.Windows.Forms.Application.Run(mainForm);
+
+                    var userContext = host.Services.GetRequiredService<IUserContext>();
+                    if (userContext.IsGuest && userContext.UserId > 0)
+                    {
+                        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+                        await userRepository.DeleteUserAsync(userContext.UserId);
+                    }
+                }
+            }
 
             cts.Cancel();
             await host.StopAsync();
@@ -67,12 +92,16 @@ internal static class Program
 
         string connectionString = "Host=localhost;Database=pingapp_db;Username=postgres;Password=your_password";
 
-        services.AddApplication(registerBackgroundScanner: true); // WinForms может запускать сканер локально
+        services.AddDbContext<PingDbContext>(options =>
+            options.UseNpgsql(connectionString), ServiceLifetime.Transient);
+
+        services.AddApplication(registerBackgroundScanner: true);
         services.AddInfrastructure(connectionString);
 
         services.AddTransient<MainForm>();
         services.AddTransient<LocalAddressForm>();
         services.AddTransient<UserForm>();
-        services.AddTransient<DiscoverHostsForm>();
+        services.AddTransient<LoginForm>();
+        services.AddTransient<AdminForm>();
     }
 }

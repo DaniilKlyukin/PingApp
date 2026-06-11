@@ -6,48 +6,36 @@ public class Device
 {
     public int Id { get; set; }
     public required string Address { get; set; }
-    public string? Nickname { get; set; }
+    public bool IsAllowedToPing { get; set; } = true;
     public List<StatusRecord> Statuses { get; set; } = [];
+    public List<UserDevice> UserDevices { get; set; } = [];
 
     public DeviceStatusTransition AddStatus(DateTime dateTime, bool atWork)
     {
+        var utcDateTime = dateTime.Kind == DateTimeKind.Utc ? dateTime : dateTime.ToUniversalTime();
+
         var newStatus = new StatusRecord
         {
-            DateTime = dateTime,
+            DateTime = utcDateTime,
             AtWork = atWork,
             Device = this
         };
 
-        if (Statuses.Count < 2)
+        if (Statuses.Count == 0)
         {
             Statuses.Add(newStatus);
+            return atWork ? DeviceStatusTransition.LoggedIn : DeviceStatusTransition.None;
+        }
+
+        var lastStatus = Statuses.OrderByDescending(s => s.DateTime).First();
+
+        if (lastStatus.AtWork == atWork)
+        {
+            lastStatus.DateTime = utcDateTime;
             return DeviceStatusTransition.None;
         }
 
-        var orderedStatuses = Statuses.OrderBy(s => s.DateTime).ToList();
-        var lastStatus = orderedStatuses[^1];
-        var preLastStatus = orderedStatuses[^2];
-
-        DeviceStatusTransition transition = DeviceStatusTransition.None;
-
-        if (preLastStatus.AtWork == atWork)
-        {
-            lastStatus.DateTime = dateTime;
-        }
-        else
-        {
-            Statuses.Add(newStatus);
-
-            if (!lastStatus.AtWork && atWork)
-            {
-                transition = DeviceStatusTransition.LoggedIn;
-            }
-            else if (lastStatus.AtWork && !atWork)
-            {
-                transition = DeviceStatusTransition.LoggedOut;
-            }
-        }
-
-        return transition;
+        Statuses.Add(newStatus);
+        return atWork ? DeviceStatusTransition.LoggedIn : DeviceStatusTransition.LoggedOut;
     }
 }

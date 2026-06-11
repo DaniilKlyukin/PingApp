@@ -1,4 +1,5 @@
 ﻿using PingApp.Application.Features.Statistics;
+using PingApp.Application.Features.Statistics.Common;
 using ScottPlot;
 
 namespace PingApp.WinForms

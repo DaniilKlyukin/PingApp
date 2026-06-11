@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 using FluentValidation;
-using Microsoft.Extensions.DependencyInjection;
+using MediatR;
 using PingApp.Application.Features.Devices;
 
 namespace PingApp.WinForms;
@@ -8,7 +8,7 @@ namespace PingApp.WinForms;
 public partial class UserForm : Form
 {
     private readonly IValidator<AddDevice.Command> _validator;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IMediator _mediator;
 
     [Browsable(false)]
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -18,12 +18,32 @@ public partial class UserForm : Form
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public string? Nickname { get; set; }
 
-    public UserForm(IValidator<AddDevice.Command> validator, IServiceProvider serviceProvider)
+    public UserForm(IValidator<AddDevice.Command> validator, IMediator mediator)
     {
         _validator = validator;
-        _serviceProvider = serviceProvider;
+        _mediator = mediator;
         InitializeComponent();
-        ActiveControl = addressTextBox;
+    }
+
+    private async void UserForm_Load(object sender, EventArgs e)
+    {
+        try
+        {
+            var allowedIpList = await _mediator.Send(new GetAllowedDevices.Query());
+
+            if (allowedIpList.Count == 0)
+            {
+                MessageBox.Show("В базе нет разрешенных устройств для мониторинга. Обратитесь к администратору.", "Внимание", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Close();
+                return;
+            }
+
+            addressComboBox.DataSource = allowedIpList;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка при загрузке пула адресов: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private void okButton_Click(object sender, EventArgs e)
@@ -33,8 +53,10 @@ public partial class UserForm : Form
 
     private void CloseOk()
     {
+        var selectedAddress = addressComboBox.SelectedItem?.ToString();
+
         var command = new AddDevice.Command(
-            addressTextBox.Text.Trim(),
+            selectedAddress ?? string.Empty,
             string.IsNullOrWhiteSpace(nicknameTextBox.Text) ? null : nicknameTextBox.Text.Trim()
         );
 
@@ -52,15 +74,6 @@ public partial class UserForm : Form
 
         DialogResult = DialogResult.OK;
         Close();
-    }
-
-    private void findIpButton_Click(object sender, EventArgs e)
-    {
-        using var discoverForm = _serviceProvider.GetRequiredService<DiscoverHostsForm>();
-        if (discoverForm.ShowDialog() == DialogResult.OK && !string.IsNullOrEmpty(discoverForm.SelectedIp))
-        {
-            addressTextBox.Text = discoverForm.SelectedIp;
-        }
     }
 
     private void nameOrAddressTextBox_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)

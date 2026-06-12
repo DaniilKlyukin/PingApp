@@ -35,7 +35,6 @@ public class Device
 
         if (lastStatus.AtWork == atWork)
         {
-            lastStatus.DateTime = utcDateTime;
             return DeviceStatusTransition.None;
         }
 

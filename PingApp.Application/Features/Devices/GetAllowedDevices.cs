@@ -19,7 +19,7 @@ public static class GetAllowedDevices
         public async Task<List<string>> Handle(Query request, CancellationToken cancellationToken)
         {
             var allowed = await _repository.GetAllowedDevicesAsync(cancellationToken);
-            return allowed.Select(d => d.Address).ToList();
+            return allowed.Select(d => d.Address.Value).ToList();
         }
     }
 }

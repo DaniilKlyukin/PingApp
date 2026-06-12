@@ -24,16 +24,18 @@ public static class GetStatisticsList
         {
             var userDevices = await _repository.GetUserDevicesAsync(_userContext.UserId, cancellationToken);
 
-            return userDevices.Select(ud =>
-            {
-                var d = ud.Device;
-                return new UserStatistics
+            return userDevices
+                .Where(ud => ud.Device.IsVisibleToUsers && ud.Device.IsAllowedToPing)
+                .Select(ud =>
                 {
-                    Address = d.Address,
-                    Nickname = ud.Nickname,
-                    Statuses = d.Statuses.Select(s => new WorkStatus(s.DateTime, s.AtWork)).ToList()
-                };
-            }).ToList();
+                    var d = ud.Device;
+                    return new UserStatistics
+                    {
+                        Address = d.Address,
+                        Nickname = ud.Nickname,
+                        Statuses = d.Statuses.Select(s => new WorkStatus(s.DateTime, s.AtWork)).ToList()
+                    };
+                }).ToList();
         }
     }
 }

@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  postgres:
+  pingapp_db:
     image: postgres:latest
     container_name: pingapp-db
     restart: always
@@ -33,7 +33,7 @@ services:
     networks:
       - pingapp-net
     depends_on:
-      - postgres
+      - pingapp_db
 
   backend-worker:
     image: pingapp-backend-worker:latest
@@ -43,11 +43,11 @@ services:
     container_name: pingapp-worker-service
     restart: always
     environment:
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=pingapp_db;Username=postgres;Password=your_password
+      - ConnectionStrings__DefaultConnection=Host=pingapp_db;Database=pingapp_db;Username=postgres;Password=your_password
     networks:
       - pingapp-net
     depends_on:
-      postgres:
+      pingapp_db:
         condition: service_healthy
 
 networks:

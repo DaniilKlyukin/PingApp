@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PingApp.Application.Interfaces;
+using PingApp.Domain.Common;
 using PingApp.Domain.Entities;
 using PingApp.Infrastructure.Data;
 
@@ -25,7 +26,7 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task DeleteUserAsync(int userId, CancellationToken cancellationToken = default)
+    public async Task DeleteUserAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         var user = await _context.Users.FindAsync([userId], cancellationToken);
         if (user != null)

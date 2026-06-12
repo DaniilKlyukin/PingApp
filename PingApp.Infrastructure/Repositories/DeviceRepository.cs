@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PingApp.Application.Interfaces;
+using PingApp.Domain.Common;
 using PingApp.Domain.Entities;
+using PingApp.Domain.ValueObjects;
 using PingApp.Infrastructure.Data;
 
 namespace PingApp.Infrastructure.Repositories;
@@ -14,7 +16,7 @@ public class DeviceRepository : IDeviceRepository
         _context = context;
     }
 
-    public async Task<List<UserDevice>> GetUserDevicesAsync(int userId, CancellationToken cancellationToken = default)
+    public async Task<List<UserDevice>> GetUserDevicesAsync(UserId userId, CancellationToken cancellationToken = default)
     {
         return await _context.UserDevices
             .Where(ud => ud.UserId == userId)
@@ -23,13 +25,13 @@ public class DeviceRepository : IDeviceRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<bool> ExistsSubscriptionAsync(int userId, string address, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsSubscriptionAsync(UserId userId, DeviceAddress address, CancellationToken cancellationToken = default)
     {
         return await _context.UserDevices
             .AnyAsync(ud => ud.UserId == userId && ud.Device.Address == address, cancellationToken);
     }
 
-    public async Task AddSubscriptionAsync(int userId, Device device, string? nickname, CancellationToken cancellationToken = default)
+    public async Task AddSubscriptionAsync(UserId userId, Device device, string? nickname, CancellationToken cancellationToken = default)
     {
         var existingDevice = await _context.Devices.FirstOrDefaultAsync(d => d.Address == device.Address, cancellationToken);
         if (existingDevice == null)
@@ -50,7 +52,7 @@ public class DeviceRepository : IDeviceRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RemoveSubscriptionAsync(int userId, string address, CancellationToken cancellationToken = default)
+    public async Task RemoveSubscriptionAsync(UserId userId, DeviceAddress address, CancellationToken cancellationToken = default)
     {
         var subscription = await _context.UserDevices
             .FirstOrDefaultAsync(ud => ud.UserId == userId && ud.Device.Address == address, cancellationToken);
@@ -84,13 +86,28 @@ public class DeviceRepository : IDeviceRepository
 
     public async Task<List<Device>> GetAllDevicesAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Devices.ToListAsync(cancellationToken);
+        return await _context.Devices
+            .Include(d => d.Statuses)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<List<Device>> GetAllowedDevicesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Devices
-            .Where(d => d.IsAllowedToPing)
+            .Where(d => d.IsAllowedToPing && d.IsVisibleToUsers)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Device?> GetByAddressAsync(DeviceAddress address, CancellationToken cancellationToken = default)
+    {
+        return await _context.Devices
+            .Include(d => d.Statuses)
+            .FirstOrDefaultAsync(d => d.Address == address, cancellationToken);
+    }
+
+    public async Task AddDeviceAsync(Device device, CancellationToken cancellationToken = default)
+    {
+        _context.Devices.Add(device);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }

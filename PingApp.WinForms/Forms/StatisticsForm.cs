@@ -32,12 +32,14 @@ namespace PingApp.WinForms
 
             foreach (var stat in activeItems)
             {
-                var orderedStatuses = stat.Statuses.OrderBy(s => s.DateTime).ToList();
+                var orderedStatuses = stat.Statuses
+                    .Select(s => new WorkStatus(s.DateTime.ToLocalTime(), s.AtWork))
+                    .OrderBy(s => s.DateTime)
+                    .ToList();
 
                 if (orderedStatuses.Count > 0)
                 {
                     var lastKnownStatus = orderedStatuses[^1];
-
                     orderedStatuses.Add(new WorkStatus(DateTime.Now, lastKnownStatus.AtWork));
                 }
 
@@ -69,9 +71,7 @@ namespace PingApp.WinForms
             var yLabels = new string[] { "Не в сети", "В сети" };
 
             formsPlot.Plot.Axes.Left.SetTicks(yPositions, yLabels);
-
             formsPlot.Plot.Axes.SetLimitsY(-0.2, 1.2);
-
             formsPlot.Plot.ShowLegend(Alignment.UpperLeft);
 
             formsPlot.Refresh();

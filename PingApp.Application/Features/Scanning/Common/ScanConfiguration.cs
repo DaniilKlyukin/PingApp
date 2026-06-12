@@ -7,17 +7,10 @@ public class ScanConfiguration : IScanConfiguration
 {
     private readonly object _lock = new();
     private TimeSpan _interval = TimeSpan.FromSeconds(10);
-    private bool _saveToDatabase = true;
 
     public TimeSpan Interval
     {
         get { lock (_lock) return _interval; }
         set { lock (_lock) _interval = value; }
-    }
-
-    public bool SaveToDatabase
-    {
-        get { lock (_lock) return _saveToDatabase; }
-        set { lock (_lock) _saveToDatabase = value; }
     }
 }

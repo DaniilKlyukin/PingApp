@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using PingApp.Application;
 using PingApp.Application.Features.Scanning.Common;
 using PingApp.Application.Interfaces;
+using PingApp.Domain.Common;
 using PingApp.Infrastructure;
 using PingApp.Infrastructure.Data;
 using Serilog;
@@ -61,7 +62,7 @@ internal static class Program
                     System.Windows.Forms.Application.Run(mainForm);
 
                     var userContext = host.Services.GetRequiredService<IUserContext>();
-                    if (userContext.IsGuest && userContext.UserId > 0)
+                    if (userContext.IsGuest && userContext.UserId != UserId.Empty)
                     {
                         var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
                         await userRepository.DeleteUserAsync(userContext.UserId);
@@ -90,7 +91,7 @@ internal static class Program
             loggingBuilder.AddSerilog(dispose: true);
         });
 
-        string connectionString = "Host=localhost;Database=pingapp_db;Username=postgres;Password=your_password";
+        var connectionString = "Host=localhost;Database=pingapp_db;Username=postgres;Password=your_password";
 
         services.AddDbContext<PingDbContext>(options =>
             options.UseNpgsql(connectionString), ServiceLifetime.Transient);

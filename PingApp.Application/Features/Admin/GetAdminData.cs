@@ -9,7 +9,7 @@ public static class GetAdminData
 
     public record Response(List<DeviceAdminDto> Devices, int ScanIntervalSeconds);
 
-    public record DeviceAdminDto(string Address, bool IsAllowed);
+    public record DeviceAdminDto(string Address, bool IsAllowedToPing, bool IsVisibleToUsers);
 
     public class Handler : IRequestHandler<Query, Response>
     {
@@ -28,7 +28,11 @@ public static class GetAdminData
             var intervalStr = await _settingsRepository.GetSettingAsync("ScanIntervalSeconds", "10", cancellationToken);
             int.TryParse(intervalStr, out var interval);
 
-            var dtos = allDevices.Select(d => new DeviceAdminDto(d.Address, d.IsAllowedToPing)).ToList();
+            var dtos = allDevices.Select(d => new DeviceAdminDto(
+                d.Address.Value,
+                d.IsAllowedToPing,
+                d.IsVisibleToUsers)).ToList();
+
             return new Response(dtos, interval);
         }
     }

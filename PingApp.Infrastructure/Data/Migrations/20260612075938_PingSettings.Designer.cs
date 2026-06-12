@@ -12,8 +12,8 @@ using PingApp.Infrastructure.Data;
 namespace PingApp.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(PingDbContext))]
-    [Migration("20260611150345_AddIsAdminToUser")]
-    partial class AddIsAdminToUser
+    [Migration("20260612075938_PingSettings")]
+    partial class PingSettings
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,18 +27,22 @@ namespace PingApp.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("PingApp.Domain.Entities.Device", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Address")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<bool>("IsAllowedToPing")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsVisibleToUsers")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.HasKey("Id");
 
@@ -76,8 +80,8 @@ namespace PingApp.Infrastructure.Data.Migrations
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("DeviceId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -88,11 +92,8 @@ namespace PingApp.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("PingApp.Domain.Entities.User", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsAdmin")
                         .HasColumnType("boolean");
@@ -117,11 +118,11 @@ namespace PingApp.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("PingApp.Domain.Entities.UserDevice", b =>
                 {
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("DeviceId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Nickname")
                         .HasColumnType("text");

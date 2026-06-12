@@ -1,8 +1,10 @@
-﻿namespace PingApp.Application.Interfaces;
+﻿using PingApp.Domain.Common;
+
+namespace PingApp.Application.Interfaces;
 
 public interface IUserContext
 {
-    int UserId { get; set; }
+    UserId UserId { get; set; }
     string? Username { get; set; }
     bool IsAdmin { get; set; }
     bool IsGuest { get; set; }

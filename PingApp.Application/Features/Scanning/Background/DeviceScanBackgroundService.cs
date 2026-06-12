@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PingApp.Application.Features.Scanning.Common;
+using PingApp.Application.Interfaces;
 
 namespace PingApp.Application.Features.Scanning.Background;
 
@@ -31,10 +32,19 @@ public class DeviceScanBackgroundService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            var currentInterval = _config.Interval;
             try
             {
                 using var scope = _scopeFactory.CreateScope();
                 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                var settingsRepository = scope.ServiceProvider.GetRequiredService<IGlobalSettingsRepository>();
+
+                var intervalStr = await settingsRepository.GetSettingAsync("ScanIntervalSeconds", "10", stoppingToken);
+                if (int.TryParse(intervalStr, out var intervalSeconds))
+                {
+                    _config.Interval = TimeSpan.FromSeconds(intervalSeconds);
+                    currentInterval = _config.Interval;
+                }
 
                 await mediator.Send(new ScanAllDevices.Command(), stoppingToken);
             }
@@ -45,7 +55,7 @@ public class DeviceScanBackgroundService : BackgroundService
 
             try
             {
-                await Task.Delay(_config.Interval, stoppingToken);
+                await Task.Delay(currentInterval, stoppingToken);
             }
             catch (OperationCanceledException)
             {

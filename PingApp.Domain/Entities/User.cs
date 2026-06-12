@@ -1,9 +1,12 @@
-﻿namespace PingApp.Domain.Entities;
+﻿using PingApp.Domain.Common;
+using PingApp.Domain.ValueObjects;
+
+namespace PingApp.Domain.Entities;
 
 public class User
 {
-    public int Id { get; set; }
-    public required string Username { get; set; }
+    public UserId Id { get; set; } = UserId.New();
+    public required Username Username { get; set; }
     public string? PasswordHash { get; set; }
     public bool IsGuest { get; set; }
     public bool IsAdmin { get; set; }

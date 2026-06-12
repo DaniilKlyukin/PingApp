@@ -31,7 +31,7 @@ public partial class AdminForm : Form
 
         foreach (var device in data.Devices)
         {
-            dataGridView.Rows.Add(device.Address, device.IsAllowed);
+            dataGridView.Rows.Add(device.Address, device.IsAllowedToPing, device.IsVisibleToUsers);
         }
     }
 
@@ -44,28 +44,49 @@ public partial class AdminForm : Form
             var address = row.Cells["AddressColumn"].Value?.ToString();
             if (address == null) continue;
 
-            var isAllowed = Convert.ToBoolean(row.Cells["AllowedColumn"].Value);
-            toggles.Add(new UpdateAdminSettings.DeviceToggleDto(address, isAllowed));
+            var isAllowedToPing = Convert.ToBoolean(row.Cells["AllowedColumn"].Value);
+            var isVisibleToUsers = Convert.ToBoolean(row.Cells["VisibleColumn"].Value);
+
+            toggles.Add(new UpdateAdminSettings.DeviceToggleDto(address, isAllowedToPing, isVisibleToUsers));
         }
 
         var interval = (int)intervalNumeric.Value;
 
-        await _mediator.Send(new UpdateAdminSettings.Command(toggles, interval, AllowAll: false));
+        await _mediator.Send(new UpdateAdminSettings.Command(toggles, interval));
 
         _scanConfig.Interval = TimeSpan.FromSeconds(interval);
 
-        MessageBox.Show("Глобальные параметры применены!", "Администрирование", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        MessageBox.Show("Глобальные параметры успешно сохранены!", "Администрирование", MessageBoxButtons.OK, MessageBoxIcon.Information);
         Close();
     }
 
-    private async void allowAllButton_Click(object sender, EventArgs e)
+    private async void allowAllPingButton_Click(object sender, EventArgs e)
+    {
+        await RunBulkActionAsync(UpdateAdminSettings.BulkActionType.AllowAllPing, "Пинг включен для всех устройств.");
+    }
+
+    private async void denyAllPingButton_Click(object sender, EventArgs e)
+    {
+        await RunBulkActionAsync(UpdateAdminSettings.BulkActionType.DenyAllPing, "Пинг отключен для всех устройств.");
+    }
+
+    private async void allowAllVisibleButton_Click(object sender, EventArgs e)
+    {
+        await RunBulkActionAsync(UpdateAdminSettings.BulkActionType.AllowAllVisible, "Все устройства открыты для отслеживания пользователями.");
+    }
+
+    private async void denyAllVisibleButton_Click(object sender, EventArgs e)
+    {
+        await RunBulkActionAsync(UpdateAdminSettings.BulkActionType.DenyAllVisible, "Все устройства скрыты от пользователей.");
+    }
+
+    private async Task RunBulkActionAsync(UpdateAdminSettings.BulkActionType actionType, string message)
     {
         var interval = (int)intervalNumeric.Value;
-
-        await _mediator.Send(new UpdateAdminSettings.Command([], interval, AllowAll: true));
+        await _mediator.Send(new UpdateAdminSettings.Command([], interval, actionType));
         _scanConfig.Interval = TimeSpan.FromSeconds(interval);
 
-        MessageBox.Show("Доступ разрешен ко всем устройствам!", "Администрирование", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        MessageBox.Show(message, "Администрирование", MessageBoxButtons.OK, MessageBoxIcon.Information);
         await LoadAdminDataAsync();
     }
 

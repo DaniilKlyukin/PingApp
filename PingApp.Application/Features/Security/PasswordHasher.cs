@@ -30,11 +30,11 @@ public static class PasswordHasher
         var parts = hashedPassword.Split(':');
         if (parts.Length != 3) return false;
 
-        int iterations = int.Parse(parts[0]);
-        byte[] salt = Convert.FromBase64String(parts[1]);
-        byte[] storedHash = Convert.FromBase64String(parts[2]);
+        var iterations = int.Parse(parts[0]);
+        var salt = Convert.FromBase64String(parts[1]);
+        var storedHash = Convert.FromBase64String(parts[2]);
 
-        byte[] incomingHash = Rfc2898DeriveBytes.Pbkdf2(
+        var incomingHash = Rfc2898DeriveBytes.Pbkdf2(
             Encoding.UTF8.GetBytes(password),
             salt,
             iterations,

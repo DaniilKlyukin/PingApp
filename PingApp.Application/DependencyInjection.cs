@@ -17,7 +17,6 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services, bool registerBackgroundScanner = false)
     {
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AddDevice.Command).Assembly));
-        services.AddValidatorsFromAssemblyContaining<AddDevice.Validator>();
 
         services.AddSingleton<IScanConfiguration, ScanConfiguration>();
         services.AddSingleton<IUiEventBridge, UiEventBridge>();

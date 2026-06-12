@@ -18,8 +18,12 @@
             dataGridView = new DataGridView();
             AddressColumn = new DataGridViewTextBoxColumn();
             AllowedColumn = new DataGridViewCheckBoxColumn();
+            VisibleColumn = new DataGridViewCheckBoxColumn();
             saveButton = new Button();
-            allowAllButton = new Button();
+            allowAllPingButton = new Button();
+            denyAllPingButton = new Button();
+            allowAllVisibleButton = new Button();
+            denyAllVisibleButton = new Button();
             intervalNumeric = new NumericUpDown();
             label1 = new Label();
             clearStatsButton = new Button();
@@ -32,11 +36,11 @@
             dataGridView.AllowUserToAddRows = false;
             dataGridView.AllowUserToDeleteRows = false;
             dataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView.Columns.AddRange(new DataGridViewColumn[] { AddressColumn, AllowedColumn });
+            dataGridView.Columns.AddRange(new DataGridViewColumn[] { AddressColumn, AllowedColumn, VisibleColumn });
             dataGridView.Location = new Point(12, 12);
             dataGridView.Name = "dataGridView";
             dataGridView.RowTemplate.Height = 25;
-            dataGridView.Size = new Size(330, 230);
+            dataGridView.Size = new Size(480, 230);
             dataGridView.TabIndex = 0;
             // 
             // AddressColumn
@@ -48,33 +52,69 @@
             // 
             // AllowedColumn
             // 
-            AllowedColumn.HeaderText = "Разрешить";
+            AllowedColumn.HeaderText = "Пинговать";
             AllowedColumn.Name = "AllowedColumn";
             AllowedColumn.Width = 80;
             // 
+            // VisibleColumn
+            // 
+            VisibleColumn.HeaderText = "Показывать";
+            VisibleColumn.Name = "VisibleColumn";
+            VisibleColumn.Width = 90;
+            // 
             // saveButton
             // 
-            saveButton.Location = new Point(182, 310);
+            saveButton.Location = new Point(312, 380);
             saveButton.Name = "saveButton";
-            saveButton.Size = new Size(160, 36);
+            saveButton.Size = new Size(180, 36);
             saveButton.TabIndex = 1;
-            saveButton.Text = "Сохранить";
+            saveButton.Text = "Сохранить и закрыть";
             saveButton.UseVisualStyleBackColor = true;
             saveButton.Click += saveButton_Click;
             // 
-            // allowAllButton
+            // allowAllPingButton
             // 
-            allowAllButton.Location = new Point(12, 310);
-            allowAllButton.Name = "allowAllButton";
-            allowAllButton.Size = new Size(160, 36);
-            allowAllButton.TabIndex = 2;
-            allowAllButton.Text = "Пинговать все";
-            allowAllButton.UseVisualStyleBackColor = true;
-            allowAllButton.Click += allowAllButton_Click;
+            allowAllPingButton.Location = new Point(12, 290);
+            allowAllPingButton.Name = "allowAllPingButton";
+            allowAllPingButton.Size = new Size(230, 30);
+            allowAllPingButton.TabIndex = 2;
+            allowAllPingButton.Text = "Разрешить пинг всем";
+            allowAllPingButton.UseVisualStyleBackColor = true;
+            allowAllPingButton.Click += allowAllPingButton_Click;
+            // 
+            // denyAllPingButton
+            // 
+            denyAllPingButton.Location = new Point(12, 326);
+            denyAllPingButton.Name = "denyAllPingButton";
+            denyAllPingButton.Size = new Size(230, 30);
+            denyAllPingButton.TabIndex = 7;
+            denyAllPingButton.Text = "Запретить пинг всем";
+            denyAllPingButton.UseVisualStyleBackColor = true;
+            denyAllPingButton.Click += denyAllPingButton_Click;
+            // 
+            // allowAllVisibleButton
+            // 
+            allowAllVisibleButton.Location = new Point(262, 290);
+            allowAllVisibleButton.Name = "allowAllVisibleButton";
+            allowAllVisibleButton.Size = new Size(230, 30);
+            allowAllVisibleButton.TabIndex = 8;
+            allowAllVisibleButton.Text = "Показать всем пользователям";
+            allowAllVisibleButton.UseVisualStyleBackColor = true;
+            allowAllVisibleButton.Click += allowAllVisibleButton_Click;
+            // 
+            // denyAllVisibleButton
+            // 
+            denyAllVisibleButton.Location = new Point(262, 326);
+            denyAllVisibleButton.Name = "denyAllVisibleButton";
+            denyAllVisibleButton.Size = new Size(230, 30);
+            denyAllVisibleButton.TabIndex = 9;
+            denyAllVisibleButton.Text = "Скрыть от всех пользователей";
+            denyAllVisibleButton.UseVisualStyleBackColor = true;
+            denyAllVisibleButton.Click += denyAllVisibleButton_Click;
             // 
             // intervalNumeric
             // 
-            intervalNumeric.Location = new Point(222, 252);
+            intervalNumeric.Location = new Point(372, 252);
             intervalNumeric.Maximum = new decimal(new int[] { 3600, 0, 0, 0 });
             intervalNumeric.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             intervalNumeric.Name = "intervalNumeric";
@@ -93,9 +133,9 @@
             // 
             // clearStatsButton
             // 
-            clearStatsButton.Location = new Point(12, 355);
+            clearStatsButton.Location = new Point(12, 380);
             clearStatsButton.Name = "clearStatsButton";
-            clearStatsButton.Size = new Size(330, 36);
+            clearStatsButton.Size = new Size(280, 36);
             clearStatsButton.TabIndex = 6;
             clearStatsButton.Text = "Очистить всю историю статусов";
             clearStatsButton.UseVisualStyleBackColor = true;
@@ -105,11 +145,14 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(354, 405);
+            ClientSize = new Size(504, 431);
+            Controls.Add(denyAllVisibleButton);
+            Controls.Add(allowAllVisibleButton);
+            Controls.Add(denyAllPingButton);
             Controls.Add(clearStatsButton);
             Controls.Add(label1);
             Controls.Add(intervalNumeric);
-            Controls.Add(allowAllButton);
+            Controls.Add(allowAllPingButton);
             Controls.Add(saveButton);
             Controls.Add(dataGridView);
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -128,8 +171,12 @@
         private DataGridView dataGridView;
         private DataGridViewTextBoxColumn AddressColumn;
         private DataGridViewCheckBoxColumn AllowedColumn;
+        private DataGridViewCheckBoxColumn VisibleColumn;
         private Button saveButton;
-        private Button allowAllButton;
+        private Button allowAllPingButton;
+        private Button denyAllPingButton;
+        private Button allowAllVisibleButton;
+        private Button denyAllVisibleButton;
         private NumericUpDown intervalNumeric;
         private Label label1;
         private Button clearStatsButton;

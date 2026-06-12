@@ -6,5 +6,4 @@
 public interface IScanConfiguration
 {
     TimeSpan Interval { get; set; }
-    bool SaveToDatabase { get; set; }
 }

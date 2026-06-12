@@ -24,20 +24,22 @@ public static class GetDevicesList
         {
             var userDevices = await _repository.GetUserDevicesAsync(_userContext.UserId, cancellationToken);
 
-            return userDevices.Select(ud =>
-            {
-                var d = ud.Device;
-                var lastStatus = d.Statuses.OrderByDescending(s => s.DateTime).FirstOrDefault();
+            return userDevices
+                .Where(ud => ud.Device.IsVisibleToUsers && ud.Device.IsAllowedToPing)
+                .Select(ud =>
+                {
+                    var d = ud.Device;
+                    var lastStatus = d.Statuses.OrderByDescending(s => s.DateTime).FirstOrDefault();
 
-                return new DeviceDto(
-                    d.Address,
-                    ud.Nickname,
-                    lastStatus?.AtWork ?? false,
-                    lastStatus != null
-                        ? (lastStatus.AtWork ? "В сети" : $"Не в сети (с {lastStatus.DateTime:g})")
-                        : "Нет данных"
-                );
-            }).ToList();
+                    return new DeviceDto(
+                        d.Address,
+                        ud.Nickname,
+                        lastStatus?.AtWork ?? false,
+                        lastStatus != null
+                            ? (lastStatus.AtWork ? "В сети" : $"Не в сети (с {lastStatus.DateTime.ToLocalTime():g})")
+                            : "Нет данных"
+                    );
+                }).ToList();
         }
     }
 }

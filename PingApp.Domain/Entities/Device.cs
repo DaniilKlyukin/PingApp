@@ -1,12 +1,15 @@
-﻿using PingApp.Domain.Enums;
+﻿using PingApp.Domain.Common;
+using PingApp.Domain.Enums;
+using PingApp.Domain.ValueObjects;
 
 namespace PingApp.Domain.Entities;
 
 public class Device
 {
-    public int Id { get; set; }
-    public required string Address { get; set; }
+    public DeviceId Id { get; set; } = DeviceId.New();
+    public required DeviceAddress Address { get; set; }
     public bool IsAllowedToPing { get; set; } = true;
+    public bool IsVisibleToUsers { get; set; } = false;
     public List<StatusRecord> Statuses { get; set; } = [];
     public List<UserDevice> UserDevices { get; set; } = [];
 
@@ -18,6 +21,7 @@ public class Device
         {
             DateTime = utcDateTime,
             AtWork = atWork,
+            DeviceId = Id,
             Device = this
         };
 

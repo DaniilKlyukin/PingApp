@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PingApp.Application.Features.Devices;
 using PingApp.Application.Features.Scanning.Background;
 using PingApp.Application.Features.Scanning.Common;
+using PingApp.Application.Features.Security;
 using PingApp.Application.Features.Users;
 using PingApp.Application.Interfaces;
 
@@ -21,6 +22,7 @@ public static class DependencyInjection
         services.AddSingleton<IScanConfiguration, ScanConfiguration>();
         services.AddSingleton<IUiEventBridge, UiEventBridge>();
         services.AddSingleton<IUserContext, UserContext>();
+        services.AddSingleton<IPasswordHasher, PasswordHasher>();
 
         if (registerBackgroundScanner)
         {

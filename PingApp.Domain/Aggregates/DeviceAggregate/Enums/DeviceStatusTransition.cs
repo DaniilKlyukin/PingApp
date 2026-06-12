@@ -1,4 +1,4 @@
-﻿namespace PingApp.Domain.Enums;
+﻿namespace PingApp.Domain.Aggregates.DeviceAggregate.Enums;
 
 public enum DeviceStatusTransition
 {

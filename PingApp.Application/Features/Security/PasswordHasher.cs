@@ -1,16 +1,17 @@
-﻿using System.Security.Cryptography;
+﻿using PingApp.Application.Interfaces;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace PingApp.Application.Features.Security;
 
-public static class PasswordHasher
+public class PasswordHasher : IPasswordHasher
 {
     private const int SaltSize = 16; // 128 bits
     private const int KeySize = 32;  // 256 bits
     private const int Iterations = 600_000;
     private static readonly HashAlgorithmName HashAlgorithm = HashAlgorithmName.SHA256;
 
-    public static string HashPassword(string password)
+    public string HashPassword(string password)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
 
@@ -25,12 +26,12 @@ public static class PasswordHasher
         return $"{Iterations}:{Convert.ToBase64String(salt)}:{Convert.ToBase64String(hash)}";
     }
 
-    public static bool VerifyPassword(string password, string hashedPassword)
+    public bool VerifyPassword(string password, string hashedPassword)
     {
         var parts = hashedPassword.Split(':');
         if (parts.Length != 3) return false;
 
-        var iterations = int.Parse(parts[0]);
+        if (!int.TryParse(parts[0], out var iterations)) return false;
         var salt = Convert.FromBase64String(parts[1]);
         var storedHash = Convert.FromBase64String(parts[2]);
 

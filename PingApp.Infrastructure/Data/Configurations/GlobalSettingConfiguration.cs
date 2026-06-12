@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using PingApp.Domain.Entities;
+using PingApp.Domain.Aggregates.SettingsAggregate;
 
 namespace PingApp.Infrastructure.Data.Configurations;
 

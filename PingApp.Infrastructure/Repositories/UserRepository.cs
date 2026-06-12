@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PingApp.Application.Interfaces;
-using PingApp.Domain.Common;
-using PingApp.Domain.Entities;
+using PingApp.Domain.Aggregates.UserAggregate;
+using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Infrastructure.Data;
 
 namespace PingApp.Infrastructure.Repositories;

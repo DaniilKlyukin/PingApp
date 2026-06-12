@@ -4,8 +4,8 @@ using System.Net.Sockets;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using PingApp.Application.Interfaces;
-using PingApp.Domain.Entities;
-using PingApp.Domain.Enums;
+using PingApp.Domain.Aggregates.DeviceAggregate;
+using PingApp.Domain.Aggregates.DeviceAggregate.Enums;
 using PingApp.Domain.ValueObjects;
 
 namespace PingApp.Application.Features.Scanning;

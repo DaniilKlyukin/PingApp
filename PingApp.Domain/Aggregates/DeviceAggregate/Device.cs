@@ -1,10 +1,13 @@
-﻿using PingApp.Domain.Common;
-using PingApp.Domain.Enums;
+﻿using PingApp.Domain.Aggregates.DeviceAggregate.Common;
+using PingApp.Domain.Aggregates.DeviceAggregate.Entities;
+using PingApp.Domain.Aggregates.DeviceAggregate.Enums;
+using PingApp.Domain.Aggregates.UserAggregate.Entities;
+using PingApp.Domain.Common;
 using PingApp.Domain.ValueObjects;
 
-namespace PingApp.Domain.Entities;
+namespace PingApp.Domain.Aggregates.DeviceAggregate;
 
-public class Device
+public class Device : IAggregateRoot
 {
     public DeviceId Id { get; set; } = DeviceId.New();
     public required DeviceAddress Address { get; set; }

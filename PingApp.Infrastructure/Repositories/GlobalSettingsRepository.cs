@@ -1,6 +1,7 @@
 ﻿using PingApp.Application.Interfaces;
-using PingApp.Domain.Entities;
+using PingApp.Domain.Aggregates.SettingsAggregate;
 using PingApp.Infrastructure.Data;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace PingApp.Infrastructure.Repositories;
 
@@ -34,3 +35,4 @@ public class GlobalSettingsRepository : IGlobalSettingsRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
+

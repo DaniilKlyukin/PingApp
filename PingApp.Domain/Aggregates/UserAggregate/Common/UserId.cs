@@ -1,4 +1,4 @@
-﻿namespace PingApp.Domain.Common;
+﻿namespace PingApp.Domain.Aggregates.UserAggregate.Common;
 
 public readonly record struct UserId(Guid Value)
 {

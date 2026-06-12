@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Configuration;
 using PingApp.Application.Features.Security;
 using PingApp.Application.Interfaces;
+using PingApp.Domain.Aggregates.UserAggregate;
+using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
 using PingApp.Domain.Common;
-using PingApp.Domain.Entities;
-using PingApp.Domain.ValueObjects;
 
 namespace PingApp.WinForms;
 
@@ -12,12 +12,19 @@ public partial class LoginForm : Form
     private readonly IUserRepository _userRepository;
     private readonly IUserContext _userContext;
     private readonly IConfiguration _configuration;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public LoginForm(IUserRepository userRepository, IUserContext userContext, IConfiguration configuration)
+    public LoginForm(
+        IUserRepository userRepository,
+        IUserContext userContext,
+        IConfiguration configuration,
+        IPasswordHasher passwordHasher)
     {
         _userRepository = userRepository;
         _userContext = userContext;
         _configuration = configuration;
+        _passwordHasher = passwordHasher;
+
         InitializeComponent();
     }
 
@@ -93,7 +100,7 @@ public partial class LoginForm : Form
         if (user == null ||
             user.IsGuest ||
             string.IsNullOrEmpty(user.PasswordHash) ||
-            !PasswordHasher.VerifyPassword(rawPassword, user.PasswordHash))
+            !_passwordHasher.VerifyPassword(rawPassword, user.PasswordHash))
         {
             return Result.Failure<User>("Неверный логин или пароль.");
         }
@@ -146,7 +153,7 @@ public partial class LoginForm : Form
         var newUser = new User
         {
             Username = username,
-            PasswordHash = PasswordHasher.HashPassword(rawPassword),
+            PasswordHash = _passwordHasher.HashPassword(rawPassword),
             IsGuest = false
         };
 

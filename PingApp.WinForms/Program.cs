@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using PingApp.Application;
 using PingApp.Application.Features.Scanning.Common;
 using PingApp.Application.Interfaces;
-using PingApp.Domain.Common;
+using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Infrastructure;
 using PingApp.Infrastructure.Data;
 using Serilog;

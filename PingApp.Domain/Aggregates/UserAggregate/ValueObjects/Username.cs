@@ -1,6 +1,6 @@
 ﻿using PingApp.Domain.Common;
 
-namespace PingApp.Domain.ValueObjects;
+namespace PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
 
 public class Username : ValueObject<string>
 {

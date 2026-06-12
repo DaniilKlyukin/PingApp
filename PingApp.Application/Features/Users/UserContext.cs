@@ -1,5 +1,5 @@
 ﻿using PingApp.Application.Interfaces;
-using PingApp.Domain.Common;
+using PingApp.Domain.Aggregates.UserAggregate.Common;
 
 namespace PingApp.Application.Features.Users;
 

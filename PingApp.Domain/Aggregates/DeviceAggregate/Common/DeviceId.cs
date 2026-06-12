@@ -1,4 +1,4 @@
-﻿namespace PingApp.Domain.Common;
+﻿namespace PingApp.Domain.Aggregates.DeviceAggregate.Common;
 
 public readonly record struct DeviceId(Guid Value)
 {

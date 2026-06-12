@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PingApp.Application.Interfaces;
-using PingApp.Domain.Common;
-using PingApp.Domain.Entities;
+using PingApp.Domain.Aggregates.DeviceAggregate;
+using PingApp.Domain.Aggregates.DeviceAggregate.Entities;
+using PingApp.Domain.Aggregates.UserAggregate.Common;
+using PingApp.Domain.Aggregates.UserAggregate.Entities;
 using PingApp.Domain.ValueObjects;
 using PingApp.Infrastructure.Data;
 
@@ -18,21 +20,36 @@ public class DeviceRepository : IDeviceRepository
 
     public async Task<List<UserDevice>> GetUserDevicesAsync(UserId userId, CancellationToken cancellationToken = default)
     {
-        return await _context.UserDevices
-            .Where(ud => ud.UserId == userId)
-            .Include(ud => ud.Device)
-                .ThenInclude(d => d.Statuses)
-            .ToListAsync(cancellationToken);
+        var user = await _context.Users
+            .Include(u => u.UserDevices)
+                .ThenInclude(ud => ud.Device)
+                    .ThenInclude(d => d.Statuses)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        return user?.UserDevices.ToList() ?? new List<UserDevice>();
     }
 
     public async Task<bool> ExistsSubscriptionAsync(UserId userId, DeviceAddress address, CancellationToken cancellationToken = default)
     {
-        return await _context.UserDevices
-            .AnyAsync(ud => ud.UserId == userId && ud.Device.Address == address, cancellationToken);
+        var user = await _context.Users
+            .Include(u => u.UserDevices)
+                .ThenInclude(ud => ud.Device)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        return user?.UserDevices.Any(ud => ud.Device.Address == address) ?? false;
     }
 
     public async Task AddSubscriptionAsync(UserId userId, Device device, string? nickname, CancellationToken cancellationToken = default)
     {
+        var user = await _context.Users
+            .Include(u => u.UserDevices)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException($"Пользователь с идентификатором {userId} не найден.");
+        }
+
         var existingDevice = await _context.Devices.FirstOrDefaultAsync(d => d.Address == device.Address, cancellationToken);
         if (existingDevice == null)
         {
@@ -41,26 +58,25 @@ public class DeviceRepository : IDeviceRepository
             await _context.SaveChangesAsync(cancellationToken);
         }
 
-        var userDevice = new UserDevice
-        {
-            UserId = userId,
-            DeviceId = existingDevice.Id,
-            Nickname = nickname
-        };
-
-        _context.UserDevices.Add(userDevice);
+        user.AddSubscription(existingDevice.Id, nickname);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveSubscriptionAsync(UserId userId, DeviceAddress address, CancellationToken cancellationToken = default)
     {
-        var subscription = await _context.UserDevices
-            .FirstOrDefaultAsync(ud => ud.UserId == userId && ud.Device.Address == address, cancellationToken);
+        var user = await _context.Users
+            .Include(u => u.UserDevices)
+                .ThenInclude(ud => ud.Device)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
-        if (subscription != null)
+        if (user != null)
         {
-            _context.UserDevices.Remove(subscription);
-            await _context.SaveChangesAsync(cancellationToken);
+            var subscription = user.UserDevices.FirstOrDefault(ud => ud.Device.Address == address);
+            if (subscription != null)
+            {
+                user.RemoveSubscription(subscription.DeviceId);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
         }
     }
 
@@ -80,8 +96,7 @@ public class DeviceRepository : IDeviceRepository
 
     public async Task ClearAllStatusesAsync(CancellationToken cancellationToken = default)
     {
-        _context.Statuses.RemoveRange(_context.Statuses);
-        await _context.SaveChangesAsync(cancellationToken);
+        await _context.Set<StatusRecord>().ExecuteDeleteAsync(cancellationToken);
     }
 
     public async Task<List<Device>> GetAllDevicesAsync(CancellationToken cancellationToken = default)

@@ -1,6 +1,8 @@
-﻿using PingApp.Domain.Common;
+﻿using PingApp.Domain.Aggregates.DeviceAggregate;
+using PingApp.Domain.Aggregates.DeviceAggregate.Common;
+using PingApp.Domain.Aggregates.UserAggregate.Common;
 
-namespace PingApp.Domain.Entities;
+namespace PingApp.Domain.Aggregates.UserAggregate.Entities;
 
 public class UserDevice
 {

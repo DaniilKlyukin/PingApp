@@ -1,6 +1,7 @@
-﻿using PingApp.Domain.Common;
+﻿using PingApp.Domain.Aggregates.DeviceAggregate;
+using PingApp.Domain.Aggregates.DeviceAggregate.Common;
 
-namespace PingApp.Domain.Entities;
+namespace PingApp.Domain.Aggregates.DeviceAggregate.Entities;
 
 public class StatusRecord
 {

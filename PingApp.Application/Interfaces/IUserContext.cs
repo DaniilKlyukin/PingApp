@@ -1,4 +1,4 @@
-﻿using PingApp.Domain.Common;
+﻿using PingApp.Domain.Aggregates.UserAggregate.Common;
 
 namespace PingApp.Application.Interfaces;
 

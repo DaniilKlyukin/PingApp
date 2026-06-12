@@ -1,7 +1,6 @@
 ﻿using MediatR;
 using PingApp.Application.Interfaces;
 using PingApp.Domain.Common;
-using PingApp.Domain.Entities;
 using PingApp.Domain.ValueObjects;
 
 namespace PingApp.Application.Features.Devices;

@@ -1,20 +1,39 @@
 ﻿using PingApp.Domain.Aggregates.DeviceAggregate.Common;
 using PingApp.Domain.Aggregates.DeviceAggregate.Entities;
 using PingApp.Domain.Aggregates.DeviceAggregate.Enums;
+using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 using PingApp.Domain.Aggregates.UserAggregate.Entities;
 using PingApp.Domain.Common;
-using PingApp.Domain.ValueObjects;
 
 namespace PingApp.Domain.Aggregates.DeviceAggregate;
 
 public class Device : IAggregateRoot
 {
-    public DeviceId Id { get; set; } = DeviceId.New();
-    public required DeviceAddress Address { get; set; }
+    public DeviceId Id { get; private set; } = DeviceId.New();
+
+    public DeviceAddress Address { get; private set; }
+
     public bool IsAllowedToPing { get; set; } = true;
     public bool IsVisibleToUsers { get; set; } = false;
-    public List<StatusRecord> Statuses { get; set; } = [];
-    public List<UserDevice> UserDevices { get; set; } = [];
+
+    private readonly List<StatusRecord> _statuses = [];
+    private readonly List<UserDevice> _userDevices = [];
+
+    public IReadOnlyCollection<StatusRecord> Statuses => _statuses.AsReadOnly();
+    public IReadOnlyCollection<UserDevice> UserDevices => _userDevices.AsReadOnly();
+
+    private Device() { }
+
+    public static Device Create(DeviceAddress address, bool isAllowedToPing = true, bool isVisibleToUsers = false)
+    {
+        return new Device
+        {
+            Id = DeviceId.New(),
+            Address = address,
+            IsAllowedToPing = isAllowedToPing,
+            IsVisibleToUsers = isVisibleToUsers
+        };
+    }
 
     public DeviceStatusTransition AddStatus(DateTime dateTime, bool atWork)
     {
@@ -28,20 +47,20 @@ public class Device : IAggregateRoot
             Device = this
         };
 
-        if (Statuses.Count == 0)
+        if (_statuses.Count == 0)
         {
-            Statuses.Add(newStatus);
+            _statuses.Add(newStatus);
             return atWork ? DeviceStatusTransition.LoggedIn : DeviceStatusTransition.None;
         }
 
-        var lastStatus = Statuses.OrderByDescending(s => s.DateTime).First();
+        var lastStatus = _statuses[^1];
 
         if (lastStatus.AtWork == atWork)
         {
             return DeviceStatusTransition.None;
         }
 
-        Statuses.Add(newStatus);
+        _statuses.Add(newStatus);
         return atWork ? DeviceStatusTransition.LoggedIn : DeviceStatusTransition.LoggedOut;
     }
 }

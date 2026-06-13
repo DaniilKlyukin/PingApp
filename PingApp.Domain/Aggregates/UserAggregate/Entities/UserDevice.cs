@@ -1,16 +1,23 @@
-﻿using PingApp.Domain.Aggregates.DeviceAggregate;
-using PingApp.Domain.Aggregates.DeviceAggregate.Common;
+﻿using PingApp.Domain.Aggregates.DeviceAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate.Common;
+using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
 
 namespace PingApp.Domain.Aggregates.UserAggregate.Entities;
 
 public class UserDevice
 {
-    public UserId UserId { get; set; }
-    public User User { get; set; } = null!;
+    public UserId UserId { get; private set; }
 
-    public DeviceId DeviceId { get; set; }
-    public Device Device { get; set; } = null!;
+    public DeviceId DeviceId { get; private set; }
 
-    public string? Nickname { get; set; }
+    public DeviceNickname DeviceNickname { get; private set; }
+
+    private UserDevice() { }
+
+    public UserDevice(UserId userId, DeviceId deviceId, DeviceNickname deviceNickname)
+    {
+        UserId = userId;
+        DeviceId = deviceId;
+        DeviceNickname = deviceNickname;
+    }
 }

@@ -1,7 +1,9 @@
 ﻿using MediatR;
 using PingApp.Application.Interfaces;
+using PingApp.Domain.Aggregates.DeviceAggregate.Common;
+using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
+using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
 using PingApp.Domain.Common;
-using PingApp.Domain.ValueObjects;
 
 namespace PingApp.Application.Features.Devices;
 
@@ -31,16 +33,21 @@ public static class AddDevice
 
             var device = await _repository.GetByAddressAsync(address, cancellationToken);
             if (device == null)
-                return Result.Failure("Данное устройство еще не обнаружено в сети.");
+                return DeviceErrors.NotFound;
 
             if (!device.IsAllowedToPing)
-                return Result.Failure("Отслеживание этого устройства ограничено администратором.");
+                return DeviceErrors.NotAllowedToPing;
 
             var alreadySubscribed = await _repository.ExistsSubscriptionAsync(_userContext.UserId, address, cancellationToken);
             if (alreadySubscribed)
-                return Result.Failure("Вы уже отслеживаете это устройство.");
+                return DeviceErrors.AlreadySubscribed;
 
-            await _repository.AddSubscriptionAsync(_userContext.UserId, device, request.Nickname?.Trim(), cancellationToken);
+            var nicknameResult = DeviceNickname.Create(request.Nickname);
+
+            if (nicknameResult.IsFailure)
+                return Result.Failure(nicknameResult.Error);
+
+            await _repository.AddSubscriptionAsync(_userContext.UserId, device, nicknameResult.Value, cancellationToken);
             return Result.Success();
         }
     }

@@ -6,6 +6,7 @@ using PingApp.Application.Features.Scanning.Common;
 using PingApp.Application.Features.Security;
 using PingApp.Application.Features.Users;
 using PingApp.Application.Interfaces;
+using PingApp.Domain.Interfaces;
 
 namespace PingApp.Application;
 

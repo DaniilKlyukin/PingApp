@@ -1,6 +1,8 @@
-﻿using PingApp.Domain.Common;
+﻿using PingApp.Domain.Aggregates.DeviceAggregate.Common;
+using PingApp.Domain.Common;
+using System.Net;
 
-namespace PingApp.Domain.ValueObjects;
+namespace PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 
 public class DeviceAddress : ValueObject<string>
 {
@@ -11,15 +13,28 @@ public class DeviceAddress : ValueObject<string>
     public static Result<DeviceAddress> Create(string address)
     {
         if (string.IsNullOrWhiteSpace(address))
-            return Result.Failure<DeviceAddress>("Адрес устройства не должен быть пустым.");
+            return DeviceErrors.EmptyAddress;
 
         var trimmed = address.Trim();
+
+        if (IPAddress.TryParse(trimmed, out _))
+        {
+            return Result.Success(new DeviceAddress(trimmed));
+        }
+
         var hostType = Uri.CheckHostName(trimmed);
+        if (hostType == UriHostNameType.Dns)
+        {
+            var isAllDigitsAndDots = trimmed.All(c => char.IsDigit(c) || c == '.');
+            if (isAllDigitsAndDots)
+            {
+                return DeviceErrors.InvalidAddress;
+            }
 
-        if (hostType is not (UriHostNameType.Dns or UriHostNameType.IPv4 or UriHostNameType.IPv6))
-            return Result.Failure<DeviceAddress>("Некорректный IP-адрес или доменное имя.");
+            return Result.Success(new DeviceAddress(trimmed));
+        }
 
-        return Result.Success(new DeviceAddress(trimmed));
+        return DeviceErrors.InvalidAddress;
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()

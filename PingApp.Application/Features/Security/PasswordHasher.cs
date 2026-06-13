@@ -1,4 +1,4 @@
-﻿using PingApp.Application.Interfaces;
+﻿using PingApp.Domain.Interfaces;
 using System.Security.Cryptography;
 using System.Text;
 

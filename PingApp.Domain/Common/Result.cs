@@ -4,26 +4,28 @@ public class Result
 {
     public bool IsSuccess { get; }
     public bool IsFailure => !IsSuccess;
-    public string Error { get; }
+    public Error Error { get; }
 
-    protected Result(bool isSuccess, string error)
+    protected Result(bool isSuccess, Error error)
     {
-        if (isSuccess && error != string.Empty)
+        if (isSuccess && error != Error.None)
             throw new InvalidOperationException("Успешный результат не может содержать ошибку.");
-        if (!isSuccess && error == string.Empty)
+        if (!isSuccess && error == Error.None)
             throw new InvalidOperationException("Неудачный результат должен содержать описание ошибки.");
 
         IsSuccess = isSuccess;
         Error = error;
     }
 
-    public static Result Success() => new(true, string.Empty);
-    public static Result Failure(string error) => new(false, error);
+    public static Result Success() => new(true, Error.None);
+    public static Result Failure(Error error) => new(false, error);
 
     public static Result<T> Success<T>(T value) => Result<T>.Success(value);
-    public static Result<T> Failure<T>(string error) => Result<T>.Failure(error);
+    public static Result<T> Failure<T>(Error error) => Result<T>.Failure(error);
 
-    public static implicit operator Result(Error error) => Failure(error.Message);
+    public static implicit operator Result(Error error) => Failure(error);
+
+    public override string ToString() => IsSuccess ? "Success" : $"Failure: {Error}";
 }
 
 public class Result<T> : Result
@@ -34,19 +36,17 @@ public class Result<T> : Result
         ? _value!
         : throw new InvalidOperationException("Невозможно получить значение неудачного результата.");
 
-    protected internal Result(T? value, bool isSuccess, string error)
+    protected internal Result(T? value, bool isSuccess, Error error)
         : base(isSuccess, error)
     {
         _value = value;
     }
 
-    public static Result<T> Success(T value) => new(value, true, string.Empty);
-    public static new Result<T> Failure(string error) => new(default, false, error);
+    public static Result<T> Success(T value) => new(value, true, Error.None);
+    public static new Result<T> Failure(Error error) => new(default, false, error);
 
-    public static implicit operator Result<T>(T value)
-    {
-        return Success(value);
-    }
+    public static implicit operator Result<T>(T value) => Success(value);
+    public static implicit operator Result<T>(Error error) => Failure(error);
 
-    public static implicit operator Result<T>(Error error) => Failure(error.Message);
+    public override string ToString() => IsSuccess ? $"Success: {Value}" : $"Failure: {Error}";
 }

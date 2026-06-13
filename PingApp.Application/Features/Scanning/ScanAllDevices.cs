@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.DeviceAggregate;
 using PingApp.Domain.Aggregates.DeviceAggregate.Enums;
-using PingApp.Domain.ValueObjects;
+using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 
 namespace PingApp.Application.Features.Scanning;
 
@@ -67,12 +67,11 @@ public static class ScanAllDevices
                     var existing = await _repository.GetByAddressAsync(addressResult.Value, cancellationToken);
                     if (existing == null)
                     {
-                        var newDevice = new Device
-                        {
-                            Address = addressResult.Value,
-                            IsAllowedToPing = true,
-                            IsVisibleToUsers = false
-                        };
+                        var newDevice = Device.Create(
+                            addressResult.Value,
+                            isAllowedToPing: true,
+                            isVisibleToUsers: false);
+
                         await _repository.AddDeviceAsync(newDevice, cancellationToken);
                     }
                 }

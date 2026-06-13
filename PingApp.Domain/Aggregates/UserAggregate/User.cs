@@ -3,37 +3,54 @@ using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate.Entities;
 using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
 using PingApp.Domain.Common;
+using PingApp.Domain.Interfaces;
 
 namespace PingApp.Domain.Aggregates.UserAggregate;
 
 public class User : IAggregateRoot
 {
-    public UserId Id { get; set; } = UserId.New();
-    public required Username Username { get; set; }
-    public string? PasswordHash { get; set; }
+    public UserId Id { get; private set; } = UserId.New();
+    public Username Username { get; private set; }
+    public string? PasswordHash { get; private set; }
     public bool IsGuest { get; set; }
     public bool IsAdmin { get; set; }
-    public List<UserDevice> UserDevices { get; set; } = [];
 
-    public void AddSubscription(DeviceId deviceId, string? nickname)
+    private readonly List<UserDevice> _userDevices = [];
+    public IReadOnlyCollection<UserDevice> UserDevices => _userDevices.AsReadOnly();
+
+    private User() { }
+
+    public static User Create(Username username, bool isGuest = false, bool isAdmin = false)
     {
-        if (UserDevices.Any(ud => ud.DeviceId == deviceId))
+        return new User
+        {
+            Id = UserId.New(),
+            Username = username,
+            IsGuest = isGuest,
+            IsAdmin = isAdmin
+        };
+    }
+
+    public void AddSubscription(DeviceId deviceId, DeviceNickname nickname)
+    {
+        if (_userDevices.Any(ud => ud.DeviceId == deviceId))
             return;
 
-        UserDevices.Add(new UserDevice
-        {
-            UserId = Id,
-            DeviceId = deviceId,
-            Nickname = nickname
-        });
+        var subscription = new UserDevice(Id, deviceId, nickname);
+        _userDevices.Add(subscription);
     }
 
     public void RemoveSubscription(DeviceId deviceId)
     {
-        var subscription = UserDevices.FirstOrDefault(ud => ud.DeviceId == deviceId);
+        var subscription = _userDevices.FirstOrDefault(ud => ud.DeviceId == deviceId);
         if (subscription != null)
         {
-            UserDevices.Remove(subscription);
+            _userDevices.Remove(subscription);
         }
+    }
+
+    public void SetPassword(Password password, IPasswordHasher passwordHasher)
+    {
+        PasswordHash = passwordHasher.HashPassword(password.Value);
     }
 }

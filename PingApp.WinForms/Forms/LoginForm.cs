@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
-using PingApp.Application.Features.Security;
 using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.UserAggregate;
+using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
 using PingApp.Domain.Common;
+using PingApp.Domain.Interfaces;
 
 namespace PingApp.WinForms;
 
@@ -34,13 +35,13 @@ public partial class LoginForm : Form
 
         if (authResult.IsFailure)
         {
-            MessageBox.Show(authResult.Error, "Доступ запрещен", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(authResult.Error.ToString(), "Доступ запрещен", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
         var user = authResult.Value;
         _userContext.UserId = user.Id;
-        _userContext.Username = user.Username;
+        _userContext.Username = user.Username.Value;
         _userContext.IsAdmin = user.IsAdmin;
         _userContext.IsGuest = user.IsGuest;
 
@@ -50,11 +51,6 @@ public partial class LoginForm : Form
 
     private async Task<Result<User>> AuthenticateUserAsync(string rawUsername, string rawPassword)
     {
-        if (string.IsNullOrWhiteSpace(rawPassword))
-        {
-            return Result.Failure<User>("Введите логин и пароль.");
-        }
-
         var usernameResult = Username.Create(rawUsername);
         if (usernameResult.IsFailure)
         {
@@ -63,27 +59,34 @@ public partial class LoginForm : Form
 
         var username = usernameResult.Value;
 
+        var passwordResult = Password.Create(rawPassword);
+
+        if (passwordResult.IsFailure)
+        {
+            return passwordResult.Error;
+        }
+
+        var password = passwordResult.Value;
+
         var adminUser = _configuration["AdminSettings:Username"] ?? "admin";
         var adminPass = _configuration["AdminSettings:Password"] ?? "admin";
 
         if (username.Value.Equals(adminUser, StringComparison.OrdinalIgnoreCase))
         {
-            if (rawPassword != adminPass)
+            if (password.Value != adminPass)
             {
-                return Result.Failure<User>("Неверный пароль администратора.");
+                return UserErrors.InvalidCredentials;
             }
 
             var dbAdmin = await _userRepository.GetUserByUsernameAsync(username);
 
             if (dbAdmin == null)
             {
-                dbAdmin = new User
-                {
-                    Username = username,
-                    PasswordHash = null,
-                    IsGuest = false,
-                    IsAdmin = true
-                };
+                dbAdmin = User.Create(
+                    username,
+                    isGuest: false,
+                    isAdmin: true
+                );
                 await _userRepository.AddUserAsync(dbAdmin);
             }
             else if (!dbAdmin.IsAdmin)
@@ -100,9 +103,9 @@ public partial class LoginForm : Form
         if (user == null ||
             user.IsGuest ||
             string.IsNullOrEmpty(user.PasswordHash) ||
-            !_passwordHasher.VerifyPassword(rawPassword, user.PasswordHash))
+            !_passwordHasher.VerifyPassword(password.Value, user.PasswordHash))
         {
-            return Result.Failure<User>("Неверный логин или пароль.");
+            return UserErrors.InvalidCredentials;
         }
 
         return user;
@@ -116,7 +119,7 @@ public partial class LoginForm : Form
         var registrationResult = await RegisterUserAsync(username, password);
         if (registrationResult.IsFailure)
         {
-            MessageBox.Show(registrationResult.Error, "Регистрация отклонена", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            MessageBox.Show(registrationResult.Error.ToString(), "Регистрация отклонена", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return;
         }
 
@@ -125,11 +128,6 @@ public partial class LoginForm : Form
 
     private async Task<Result> RegisterUserAsync(string rawUsername, string rawPassword)
     {
-        if (string.IsNullOrWhiteSpace(rawPassword) || rawPassword.Length < 4)
-        {
-            return Result.Failure("Пароль должен содержать не менее 4 символов.");
-        }
-
         var usernameResult = Username.Create(rawUsername);
         if (usernameResult.IsFailure)
         {
@@ -141,21 +139,29 @@ public partial class LoginForm : Form
         var adminUser = _configuration["AdminSettings:Username"] ?? "admin";
         if (username.Value.Equals(adminUser, StringComparison.OrdinalIgnoreCase))
         {
-            return Result.Failure("Зарезервированное имя администратора невозможно зарегистрировать.");
+            return UserErrors.ReservedName;
         }
 
         var existingUser = await _userRepository.GetUserByUsernameAsync(username);
         if (existingUser != null)
         {
-            return Result.Failure("Пользователь с таким именем уже зарегистрирован.");
+            return UserErrors.DuplicateUsername;
         }
 
-        var newUser = new User
+        var newUser = User.Create(
+            username,
+            isGuest: false,
+            isAdmin: false
+        );
+
+        var passwordResult = Password.Create(rawPassword);
+
+        if (passwordResult.IsFailure)
         {
-            Username = username,
-            PasswordHash = _passwordHasher.HashPassword(rawPassword),
-            IsGuest = false
-        };
+            return passwordResult.Error;
+        }
+
+        newUser.SetPassword(passwordResult.Value, _passwordHasher);
 
         await _userRepository.AddUserAsync(newUser);
         return Result.Success();
@@ -176,18 +182,17 @@ public partial class LoginForm : Form
 
             var guestUsername = usernameResult.Value;
 
-            var guestUser = new User
-            {
-                Username = guestUsername,
-                PasswordHash = null,
-                IsGuest = true
-            };
+            var guestUser = User.Create(
+                guestUsername,
+                isGuest: true,
+                isAdmin: false
+            );
 
             await _userRepository.AddUserAsync(guestUser);
 
             _userContext.UserId = guestUser.Id;
 
-            _userContext.Username = guestUser.Username;
+            _userContext.Username = guestUser.Username.Value;
             _userContext.IsGuest = true;
 
             DialogResult = DialogResult.OK;

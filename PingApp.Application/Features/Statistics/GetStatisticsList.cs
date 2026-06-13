@@ -23,16 +23,22 @@ public static class GetStatisticsList
         public async Task<List<UserStatistics>> Handle(Query request, CancellationToken cancellationToken)
         {
             var userDevices = await _repository.GetUserDevicesAsync(_userContext.UserId, cancellationToken);
+            var allDevices = await _repository.GetAllDevicesAsync(cancellationToken);
 
             return userDevices
+                .Join(
+                    allDevices,
+                    ud => ud.DeviceId,
+                    d => d.Id,
+                    (ud, d) => new { UserDevice = ud, Device = d })
                 .Where(ud => ud.Device.IsVisibleToUsers && ud.Device.IsAllowedToPing)
                 .Select(ud =>
                 {
                     var d = ud.Device;
                     return new UserStatistics
                     {
-                        Address = d.Address,
-                        Nickname = ud.Nickname,
+                        Address = d.Address.Value,
+                        Nickname = ud.UserDevice.DeviceNickname.Value,
                         Statuses = d.Statuses.Select(s => new WorkStatus(s.DateTime, s.AtWork)).ToList()
                     };
                 }).ToList();

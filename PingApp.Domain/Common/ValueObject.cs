@@ -47,10 +47,5 @@ public abstract class ValueObject<T> : ValueObject
         yield return Value;
     }
 
-    public static implicit operator T(ValueObject<T>? valueObject)
-    {
-        return valueObject is null ? default! : valueObject.Value;
-    }
-
     public override string? ToString() => Value?.ToString();
 }

@@ -23,17 +23,23 @@ public static class GetDevicesList
         public async Task<List<DeviceDto>> Handle(Query request, CancellationToken cancellationToken)
         {
             var userDevices = await _repository.GetUserDevicesAsync(_userContext.UserId, cancellationToken);
+            var allDevices = await _repository.GetAllDevicesAsync(cancellationToken);
 
             return userDevices
-                .Where(ud => ud.Device.IsVisibleToUsers && ud.Device.IsAllowedToPing)
-                .Select(ud =>
+                .Join(
+                    allDevices,
+                    ud => ud.DeviceId,
+                    d => d.Id,
+                    (ud, d) => new { UserDevice = ud, Device = d })
+                .Where(x => x.Device.IsVisibleToUsers && x.Device.IsAllowedToPing)
+                .Select(x =>
                 {
-                    var d = ud.Device;
+                    var d = x.Device;
                     var lastStatus = d.Statuses.OrderByDescending(s => s.DateTime).FirstOrDefault();
 
                     return new DeviceDto(
-                        d.Address,
-                        ud.Nickname,
+                        d.Address.Value,
+                        x.UserDevice.DeviceNickname?.Value,
                         lastStatus?.AtWork ?? false,
                         lastStatus != null
                             ? (lastStatus.AtWork ? "В сети" : $"Не в сети (с {lastStatus.DateTime.ToLocalTime():g})")

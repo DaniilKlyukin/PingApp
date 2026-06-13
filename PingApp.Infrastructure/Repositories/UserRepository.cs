@@ -2,6 +2,7 @@
 using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.UserAggregate;
 using PingApp.Domain.Aggregates.UserAggregate.Common;
+using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
 using PingApp.Infrastructure.Data;
 
 namespace PingApp.Infrastructure.Repositories;
@@ -15,7 +16,7 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<User?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken = default)
+    public async Task<User?> GetUserByUsernameAsync(Username username, CancellationToken cancellationToken = default)
     {
         return await _context.Users.FirstOrDefaultAsync(u => u.Username == username, cancellationToken);
     }

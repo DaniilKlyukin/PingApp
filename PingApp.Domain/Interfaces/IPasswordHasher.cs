@@ -1,4 +1,4 @@
-﻿namespace PingApp.Application.Interfaces;
+﻿namespace PingApp.Domain.Interfaces;
 
 public interface IPasswordHasher
 {

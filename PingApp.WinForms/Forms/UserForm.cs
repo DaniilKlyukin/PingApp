@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using MediatR;
 using PingApp.Application.Features.Devices;
-using PingApp.Domain.ValueObjects;
+using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 
 namespace PingApp.WinForms;
 
@@ -56,7 +56,7 @@ public partial class UserForm : Form
         var addressValidationResult = DeviceAddress.Create(selectedAddress);
         if (addressValidationResult.IsFailure)
         {
-            MessageBox.Show(addressValidationResult.Error, "Ошибка валидации", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show(addressValidationResult.Error.ToString(), "Ошибка валидации", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 

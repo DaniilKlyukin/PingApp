@@ -8,7 +8,7 @@ using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
 
-namespace PingApp.UnitTests.Application;
+namespace PingApp.UnitTests.Application.Devices;
 
 public class AddDeviceHandlerTests
 {

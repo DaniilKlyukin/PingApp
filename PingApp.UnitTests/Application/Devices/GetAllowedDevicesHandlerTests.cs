@@ -5,7 +5,7 @@ using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.DeviceAggregate;
 using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 
-namespace PingApp.UnitTests.Application;
+namespace PingApp.UnitTests.Application.Devices;
 
 public class GetAllowedDevicesHandlerTests
 {

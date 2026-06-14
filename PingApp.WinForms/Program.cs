@@ -1,9 +1,11 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PingApp.Application;
 using PingApp.Application.Features.Scanning.Common;
+using PingApp.Application.Features.Users;
 using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Infrastructure;
@@ -64,8 +66,9 @@ internal static class Program
                     var userContext = host.Services.GetRequiredService<IUserContext>();
                     if (userContext.IsGuest && userContext.UserId != UserId.Empty)
                     {
-                        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-                        await userRepository.DeleteUserAsync(userContext.UserId);
+                        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+
+                        await mediator.Send(new DeleteUser.Command(userContext.UserId.Value));
                     }
                 }
             }

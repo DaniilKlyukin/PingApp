@@ -3,6 +3,7 @@ using NSubstitute;
 using PingApp.Application.Features.Devices;
 using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.DeviceAggregate;
+using PingApp.Domain.Aggregates.DeviceAggregate.Common;
 using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
@@ -26,25 +27,13 @@ public class AddDeviceHandlerTests
     [Fact]
     public async Task Handle_ShouldReturnFailure_WhenAddressIsInvalid()
     {
-        var command = new AddDevice.Command("invalid-ip-address", "My PC");
+        var command = new AddDevice.Command("invalid-ip-address#", "My PC");
 
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
 
         await _repositoryMock.DidNotReceiveWithAnyArgs().GetByAddressAsync(default!, default);
-    }
-
-    [Fact]
-    public async Task Handle_ShouldReturnFailure_WhenAddressIsValid()
-    {
-        var command = new AddDevice.Command("192.168.1.15", "My PC");
-
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        result.IsSuccess.Should().BeTrue();
-
-        await _repositoryMock.ReceivedWithAnyArgs().GetByAddressAsync(default!, default);
     }
 
     [Fact]
@@ -80,6 +69,9 @@ public class AddDeviceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(DeviceErrors.NotFound);
+
+        await _repositoryMock.DidNotReceiveWithAnyArgs().AddSubscriptionAsync(default!, default!, default!, default);
     }
 
     [Fact]

@@ -1,5 +1,4 @@
-﻿using FluentValidation;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using PingApp.Application.Features.Devices;
 using PingApp.Application.Features.Scanning.Background;
 using PingApp.Application.Features.Scanning.Common;

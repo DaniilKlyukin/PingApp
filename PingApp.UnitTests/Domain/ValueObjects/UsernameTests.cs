@@ -1,9 +1,6 @@
 ﻿using FluentAssertions;
 using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PingApp.UnitTests.Domain.ValueObjects;
 

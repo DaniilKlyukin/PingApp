@@ -1,0 +1,45 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: windows-latest # WinForms требует Windows-раннер для сборки
+
+    steps:
+    # 1. Скачиваем исходный код
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. Устанавливаем .NET SDK
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    # 3. Кэшируем NuGet-пакеты для ускорения последующих сборок
+    - name: Cache NuGet packages
+      uses: actions/cache@v4
+      with:
+        path: ~/.nuget/packages
+        key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+        restore-keys: |
+          ${{ runner.os }}-nuget-
+
+    # 4. Восстанавливаем зависимости
+    - name: Restore dependencies
+      run: dotnet restore PingApp.sln
+
+    # 5. Собираем проект (в режиме Release)
+    - name: Build Solution
+      run: dotnet build PingApp.sln --configuration Release --no-restore
+
+    # 6. Запускаем все тесты (Unit, Architecture, Integration)
+    # Testcontainers автоматически обнаружит Docker на виртуальной машине Windows и поднимет PostgreSQL
+    - name: Run Tests
+      run: dotnet test PingApp.sln --configuration Release --no-build --verbosity normal

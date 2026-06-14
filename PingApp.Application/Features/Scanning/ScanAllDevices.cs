@@ -14,7 +14,7 @@ public static class ScanAllDevices
 {
     public record Command : IRequest<Unit>;
 
-    public class Handler : IRequestHandler<Command, Unit>
+    public sealed class Handler : IRequestHandler<Command, Unit>
     {
         private readonly IDeviceRepository _repository;
         private readonly IPingService _pingService;

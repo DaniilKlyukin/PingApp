@@ -11,7 +11,7 @@ public static class GetAdminData
 
     public record DeviceAdminDto(string Address, bool IsAllowedToPing, bool IsVisibleToUsers);
 
-    public class Handler : IRequestHandler<Query, Response>
+    public sealed class Handler : IRequestHandler<Query, Response>
     {
         private readonly IDeviceRepository _deviceRepository;
         private readonly IGlobalSettingsRepository _settingsRepository;

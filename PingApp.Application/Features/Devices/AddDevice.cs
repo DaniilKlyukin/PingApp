@@ -11,7 +11,7 @@ public static class AddDevice
 {
     public record Command(string Address, string? Nickname) : IRequest<Result>;
 
-    public class Handler : IRequestHandler<Command, Result>
+    public sealed class Handler : IRequestHandler<Command, Result>
     {
         private readonly IDeviceRepository _repository;
         private readonly IUserContext _userContext;

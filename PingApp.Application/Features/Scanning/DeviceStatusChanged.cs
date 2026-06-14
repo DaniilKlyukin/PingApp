@@ -13,7 +13,7 @@ public static class DeviceStatusChanged
         bool AtWork,
         DateTime DateTime) : INotification;
 
-    public class UiBridgeHandler : INotificationHandler<Notification>
+    public sealed class UiBridgeHandler : INotificationHandler<Notification>
     {
         private readonly IUiEventBridge _bridge;
 

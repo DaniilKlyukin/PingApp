@@ -10,7 +10,7 @@ public static class LoginGuest
 {
     public record Command : IRequest<Result<Login.Response>>;
 
-    public class Handler : IRequestHandler<Command, Result<Login.Response>>
+    public sealed class Handler : IRequestHandler<Command, Result<Login.Response>>
     {
         private readonly IUserRepository _userRepository;
 

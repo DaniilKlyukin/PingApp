@@ -9,7 +9,7 @@ public static class RemoveDevice
 {
     public record Command(string Address) : IRequest<Result>;
 
-    public class Handler : IRequestHandler<Command, Result>
+    public sealed class Handler : IRequestHandler<Command, Result>
     {
         private readonly IDeviceRepository _repository;
         private readonly IUserContext _userContext;

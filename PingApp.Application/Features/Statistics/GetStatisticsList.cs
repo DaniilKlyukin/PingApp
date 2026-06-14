@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using PingApp.Application.Features.Statistics.Common;
-using PingApp.Application.Features.Users;
 using PingApp.Application.Interfaces;
 
 namespace PingApp.Application.Features.Statistics;
@@ -9,7 +8,7 @@ public static class GetStatisticsList
 {
     public record Query : IRequest<List<UserStatistics>>;
 
-    public class Handler : IRequestHandler<Query, List<UserStatistics>>
+    public sealed class Handler : IRequestHandler<Query, List<UserStatistics>>
     {
         private readonly IDeviceRepository _repository;
         private readonly IUserContext _userContext;

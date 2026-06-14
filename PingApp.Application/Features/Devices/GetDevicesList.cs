@@ -9,7 +9,7 @@ public static class GetDevicesList
 
     public record DeviceDto(string Address, string? Nickname, bool AtWork, string StatusString);
 
-    public class Handler : IRequestHandler<Query, List<DeviceDto>>
+    public sealed class Handler : IRequestHandler<Query, List<DeviceDto>>
     {
         private readonly IDeviceRepository _repository;
         private readonly IUserContext _userContext;

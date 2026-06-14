@@ -13,7 +13,7 @@ public static class Register
 {
     public record Command(string Username, string Password) : IRequest<Result>;
 
-    public class Handler : IRequestHandler<Command, Result>
+    public sealed class Handler : IRequestHandler<Command, Result>
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;

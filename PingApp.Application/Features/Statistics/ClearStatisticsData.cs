@@ -7,7 +7,7 @@ public static class ClearStatisticsData
 {
     public record Command : IRequest<Unit>;
 
-    public class Handler : IRequestHandler<Command, Unit>
+    public sealed class Handler : IRequestHandler<Command, Unit>
     {
         private readonly IDeviceRepository _repository;
 

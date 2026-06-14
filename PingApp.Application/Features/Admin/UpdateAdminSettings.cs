@@ -20,7 +20,7 @@ public static class UpdateAdminSettings
         DenyAllVisible
     }
 
-    public class Handler : IRequestHandler<Command, Unit>
+    public sealed class Handler : IRequestHandler<Command, Unit>
     {
         private readonly IDeviceRepository _deviceRepository;
         private readonly IGlobalSettingsRepository _settingsRepository;

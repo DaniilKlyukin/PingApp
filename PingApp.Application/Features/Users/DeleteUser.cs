@@ -9,7 +9,7 @@ public static class DeleteUser
 {
     public record Command(Guid UserId) : IRequest<Result>;
 
-    public class Handler : IRequestHandler<Command, Result>
+    public sealed class Handler : IRequestHandler<Command, Result>
     {
         private readonly IUserRepository _userRepository;
 

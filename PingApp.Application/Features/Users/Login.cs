@@ -15,7 +15,7 @@ public static class Login
 
     public record Response(Guid UserId, string Username, bool IsAdmin, bool IsGuest);
 
-    public class Handler : IRequestHandler<Command, Result<Response>>
+    public sealed class Handler : IRequestHandler<Command, Result<Response>>
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher _passwordHasher;

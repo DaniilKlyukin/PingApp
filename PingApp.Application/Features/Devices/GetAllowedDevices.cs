@@ -7,7 +7,7 @@ public static class GetAllowedDevices
 {
     public record Query : IRequest<List<string>>;
 
-    public class Handler : IRequestHandler<Query, List<string>>
+    public sealed class Handler : IRequestHandler<Query, List<string>>
     {
         private readonly IDeviceRepository _repository;
 

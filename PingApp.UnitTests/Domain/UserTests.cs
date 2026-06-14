@@ -1,5 +1,5 @@
 ﻿using FluentAssertions;
-using Moq;
+using NSubstitute;
 using PingApp.Domain.Aggregates.DeviceAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate;
 using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
@@ -78,12 +78,12 @@ public class UserTests
         var user = User.Create(_testUsername);
         var password = Password.Create("Secret123").Value;
 
-        var mockHasher = new Mock<IPasswordHasher>();
-        mockHasher.Setup(h => h.HashPassword(password.Value)).Returns("hashed_value");
+        var mockHasher = Substitute.For<IPasswordHasher>();
+        mockHasher.HashPassword(password.Value).Returns("hashed_value");
 
-        user.SetPassword(password, mockHasher.Object);
+        user.SetPassword(password, mockHasher);
 
         user.PasswordHash.Should().Be("hashed_value");
-        mockHasher.Verify(h => h.HashPassword(password.Value), Times.Once);
+        mockHasher.Received(1).HashPassword(password.Value);
     }
 }

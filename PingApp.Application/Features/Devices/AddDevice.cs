@@ -32,7 +32,7 @@ public static class AddDevice
             var address = addressResult.Value;
 
             var device = await _repository.GetByAddressAsync(address, cancellationToken);
-            if (device == null)
+            if (device == null || !device.IsVisibleToUsers)
                 return DeviceErrors.NotFound;
 
             if (!device.IsAllowedToPing)

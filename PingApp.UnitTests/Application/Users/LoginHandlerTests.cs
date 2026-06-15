@@ -121,4 +121,20 @@ public class LoginHandlerTests
         result.Value.IsAdmin.Should().BeFalse();
         result.Value.IsGuest.Should().BeFalse();
     }
+
+    [Fact]
+    public async Task Handle_ShouldUseDefaultAdminCredentials_WhenConfigurationIsEmpty()
+    {
+        var emptyConfig = new ConfigurationBuilder().Build();
+        var handler = new Login.Handler(_userRepositoryMock, _passwordHasherMock, emptyConfig);
+        var command = new Login.Command("admin", "admin");
+
+        _userRepositoryMock.GetUserByUsernameAsync(Username.Create("admin").Value, Arg.Any<CancellationToken>())
+            .Returns((User?)null);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value.IsAdmin.Should().BeTrue();
+    }
 }

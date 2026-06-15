@@ -89,4 +89,17 @@ public class RegisterHandlerTests
             Arg.Is<User>(u => u.Username == username && u.PasswordHash == "hashed_secure_pass" && !u.IsAdmin && !u.IsGuest),
             Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task Handle_ShouldUseDefaultAdminName_WhenConfigurationIsEmpty()
+    {
+        var emptyConfig = new ConfigurationBuilder().Build();
+        var handler = new Register.Handler(_userRepositoryMock, _passwordHasherMock, emptyConfig);
+        var command = new Register.Command("admin", "password123");
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Should().Be(UserErrors.ReservedName);
+    }
 }

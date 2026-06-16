@@ -7,6 +7,8 @@ using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
 using PingApp.Domain.Common;
 using PingApp.Domain.Interfaces;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace PingApp.Application.Features.Users;
 
@@ -62,7 +64,10 @@ public static class Login
 
             if (username.Value.Equals(adminUser, StringComparison.OrdinalIgnoreCase))
             {
-                if (password.Value != adminPass)
+                var passwordBytes = Encoding.UTF8.GetBytes(password.Value);
+                var adminPassBytes = Encoding.UTF8.GetBytes(adminPass);
+
+                if (!CryptographicOperations.FixedTimeEquals(passwordBytes, adminPassBytes))
                 {
                     _logger.LogWarning("Попытка входа под администратором {Username} отклонена: неверный пароль", request.Username);
                     return UserErrors.InvalidCredentials;

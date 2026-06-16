@@ -33,12 +33,12 @@ public class RemoveDeviceHandlerTests
     {
         var command = new RemoveDevice.Command("invalid_address#");
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(DeviceErrors.InvalidAddress);
 
-        await _repositoryMock.DidNotReceiveWithAnyArgs().RemoveSubscriptionAsync(default!, default!, default);
+        await _repositoryMock.DidNotReceiveWithAnyArgs().RemoveSubscriptionAsync(default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class RemoveDeviceHandlerTests
 
         _userContextMock.UserId.Returns(userId);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
 

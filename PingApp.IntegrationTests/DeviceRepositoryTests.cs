@@ -25,10 +25,10 @@ public class DeviceRepositoryTests : IClassFixture<DatabaseFixture>
         var repository = new DeviceRepository(context);
         var device = Device.Create(DeviceAddress.Create("192.168.1.55").Value);
 
-        await repository.AddDeviceAsync(device);
+        await repository.AddDeviceAsync(device, TestContext.Current.CancellationToken);
 
         using var checkContext = new PingDbContext(_contextOptions);
-        var dbDevice = await checkContext.Devices.FirstOrDefaultAsync(d => d.Address == device.Address);
+        var dbDevice = await checkContext.Devices.FirstOrDefaultAsync(d => d.Address == device.Address, TestContext.Current.CancellationToken);
 
         dbDevice.Should().NotBeNull();
         dbDevice!.Id.Should().Be(device.Id);

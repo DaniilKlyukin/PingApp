@@ -45,7 +45,7 @@ public class UpdateAdminSettingsHandlerTests
 
         var command = new UpdateAdminSettings.Command(toggles, ScanIntervalSeconds: 30);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.Should().Be(Unit.Value);
 
@@ -76,7 +76,7 @@ public class UpdateAdminSettingsHandlerTests
             ScanIntervalSeconds: 10,
             BulkAction: UpdateAdminSettings.BulkActionType.DenyAllPing);
 
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         device1.IsAllowedToPing.Should().BeFalse();
         device2.IsAllowedToPing.Should().BeFalse();
@@ -99,7 +99,7 @@ public class UpdateAdminSettingsHandlerTests
             ScanIntervalSeconds: 10,
             BulkAction: UpdateAdminSettings.BulkActionType.AllowAllVisible);
 
-        await _sut.Handle(command, CancellationToken.None);
+        await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         device1.IsVisibleToUsers.Should().BeTrue();
         device2.IsVisibleToUsers.Should().BeTrue();

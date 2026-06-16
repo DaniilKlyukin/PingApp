@@ -27,34 +27,42 @@ public class RepositoryIntegrationTests : IClassFixture<DatabaseFixture>
         var username = Username.Create("test_integration_user").Value;
         var user = User.Create(username, isGuest: false, isAdmin: false);
 
-        await repository.AddUserAsync(user);
+        await repository.AddUserAsync(user, TestContext.Current.CancellationToken);
 
         using (var assertContext = new PingDbContext(_contextOptions))
         {
-            var savedUser = await assertContext.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+            var savedUser = await assertContext.Users.FirstOrDefaultAsync(
+                u => u.Id == user.Id,
+                TestContext.Current.CancellationToken);
+
             savedUser.Should().NotBeNull();
             savedUser!.Username.Value.Should().Be("test_integration_user");
         }
 
-        var fetchedUser = await repository.GetUserByUsernameAsync(username);
+        var fetchedUser = await repository.GetUserByUsernameAsync(username, TestContext.Current.CancellationToken);
         fetchedUser.Should().NotBeNull();
         fetchedUser!.Id.Should().Be(user.Id);
 
         fetchedUser.IsAdmin = true;
-        await repository.UpdateUserAsync(fetchedUser);
+        await repository.UpdateUserAsync(fetchedUser, TestContext.Current.CancellationToken);
 
         using (var assertContext = new PingDbContext(_contextOptions))
         {
-            var updatedUser = await assertContext.Users.FindAsync(user.Id);
+            var updatedUser = await assertContext.Users.FindAsync(
+                new object[] { user.Id },
+                TestContext.Current.CancellationToken);
+
             updatedUser!.IsAdmin.Should().BeTrue();
         }
 
-        // Act & Assert (Delte)
-        await repository.DeleteUserAsync(user.Id);
+        await repository.DeleteUserAsync(user.Id, TestContext.Current.CancellationToken);
 
         using (var assertContext = new PingDbContext(_contextOptions))
         {
-            var deletedUser = await assertContext.Users.FindAsync(user.Id);
+            var deletedUser = await assertContext.Users.FindAsync(
+                new object[] { user.Id },
+                TestContext.Current.CancellationToken);
+
             deletedUser.Should().BeNull();
         }
     }
@@ -67,12 +75,12 @@ public class RepositoryIntegrationTests : IClassFixture<DatabaseFixture>
         var key = "TestSettingKey";
         var expectedValue = "45";
 
-        await repository.SaveSettingAsync(key, expectedValue);
+        await repository.SaveSettingAsync(key, expectedValue, TestContext.Current.CancellationToken);
 
-        var actualValue = await repository.GetSettingAsync(key, "default_val");
+        var actualValue = await repository.GetSettingAsync(key, "default_val", TestContext.Current.CancellationToken);
         actualValue.Should().Be(expectedValue);
 
-        var defaultValue = await repository.GetSettingAsync("NonExistentKey", "100");
+        var defaultValue = await repository.GetSettingAsync("NonExistentKey", "100", TestContext.Current.CancellationToken);
         defaultValue.Should().Be("100");
     }
 }

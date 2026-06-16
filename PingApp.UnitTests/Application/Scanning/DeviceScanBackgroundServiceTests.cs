@@ -35,11 +35,11 @@ public class DeviceScanBackgroundServiceTests
         configMock.Interval.Returns(TimeSpan.FromMilliseconds(50));
 
         var sut = new DeviceScanBackgroundService(scopeFactoryMock, configMock, loggerMock);
-        using var cts = new CancellationTokenSource();
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
 
-        var runTask = sut.StartAsync(cts.Token);
-        await Task.Delay(150);
-        cts.Cancel();
+        var runTask = sut.StartAsync(linkedCts.Token);
+        await Task.Delay(150, TestContext.Current.CancellationToken);
+        linkedCts.Cancel();
         await runTask;
 
         await mediatorMock.Received().Send(Arg.Any<ScanAllDevices.Command>(), Arg.Any<CancellationToken>());

@@ -3,6 +3,8 @@ using NSubstitute;
 using PingApp.Application.Features.Statistics;
 using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.DeviceAggregate;
+using PingApp.Domain.Aggregates.DeviceAggregate.Common;
+using PingApp.Domain.Aggregates.DeviceAggregate.Entities;
 using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate.Entities;
@@ -33,18 +35,24 @@ public class GetStatisticsListHandlerTests
 
         var time1 = DateTime.UtcNow.AddMinutes(-10);
         var time2 = DateTime.UtcNow;
-        device.AddStatus(time1, atWork: true);
-        device.AddStatus(time2, atWork: false);
 
         var userDevice = new UserDevice(userId, device.Id, DeviceNickname.Create("Main Router").Value);
 
         _repositoryMock.GetUserDevicesAsync(userId, Arg.Any<CancellationToken>())
             .Returns(new List<UserDevice> { userDevice });
 
-        _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
+        _repositoryMock.GetAllDevicesNoTrackingAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device> { device });
 
-        var result = await _sut.Handle(new GetStatisticsList.Query(), CancellationToken.None);
+        var status1 = new StatusRecord { DeviceId = device.Id, DateTime = time1, AtWork = true };
+        var status2 = new StatusRecord { DeviceId = device.Id, DateTime = time2, AtWork = false };
+
+        _repositoryMock.GetStatusHistoryAsync(
+                Arg.Is<List<DeviceId>>(ids => ids.Contains(device.Id)),
+                Arg.Any<CancellationToken>())
+            .Returns(new List<StatusRecord> { status1, status2 });
+
+        var result = await _sut.Handle(new GetStatisticsList.Query(), TestContext.Current.CancellationToken);
 
         result.Should().HaveCount(1);
 
@@ -82,7 +90,7 @@ public class GetStatisticsListHandlerTests
         _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device> { hiddenDevice, forbiddenDevice, validDevice });
 
-        var result = await _sut.Handle(new GetStatisticsList.Query(), CancellationToken.None);
+        var result = await _sut.Handle(new GetStatisticsList.Query(), TestContext.Current.CancellationToken);
 
         result.Should().HaveCount(1);
         result.Single().Address.Should().Be("192.168.1.3");
@@ -101,7 +109,7 @@ public class GetStatisticsListHandlerTests
         _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device>());
 
-        var result = await _sut.Handle(new GetStatisticsList.Query(), CancellationToken.None);
+        var result = await _sut.Handle(new GetStatisticsList.Query(), TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Should().BeEmpty();

@@ -19,7 +19,7 @@ public class ClearStatisticsDataHandlerTests
             repositoryMock,
             loggerMock);
 
-        var result = await handler.Handle(new ClearStatisticsData.Command(), CancellationToken.None);
+        var result = await handler.Handle(new ClearStatisticsData.Command(), TestContext.Current.CancellationToken);
 
         result.Should().Be(Unit.Value);
 

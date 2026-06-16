@@ -33,7 +33,7 @@ public class GetAllowedDevicesHandlerTests
         _repositoryMock.GetAllowedDevicesAsync(Arg.Any<CancellationToken>())
             .Returns(devices);
 
-        var result = await _sut.Handle(query, CancellationToken.None);
+        var result = await _sut.Handle(query, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Should().HaveCount(3);
@@ -50,7 +50,7 @@ public class GetAllowedDevicesHandlerTests
         _repositoryMock.GetAllowedDevicesAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device>());
 
-        var result = await _sut.Handle(query, CancellationToken.None);
+        var result = await _sut.Handle(query, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.Should().BeEmpty();

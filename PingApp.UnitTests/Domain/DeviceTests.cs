@@ -17,76 +17,89 @@ public class DeviceTests
     }
 
     [Fact]
-    public void AddStatus_ShouldAddFirstStatus_AndReturnLoggedIn_WhenDeviceIsOnline()
+    public void UpdateStatus_ShouldSetFirstStatus_AndReturnLoggedIn_WhenDeviceIsOnline()
     {
+        // Arrange
         var device = CreateSut();
         var time = DateTime.UtcNow;
 
-        var transition = device.AddStatus(time, atWork: true);
+        // Act
+        var transition = device.UpdateStatus(time, atWork: true);
 
+        // Assert
         transition.Should().Be(DeviceStatusTransition.LoggedIn);
-        device.Statuses.Should().HaveCount(1);
-
-        var status = device.Statuses.Single();
-        status.AtWork.Should().BeTrue();
-        status.DateTime.Should().Be(time);
+        device.LastKnownStatus.Should().BeTrue();
+        device.LastStatusChangedUtc.Should().Be(time);
     }
 
     [Fact]
-    public void AddStatus_ShouldAddFirstStatus_AndReturnNone_WhenDeviceIsOffline()
+    public void UpdateStatus_ShouldSetFirstStatus_AndReturnNone_WhenDeviceIsOffline()
     {
+        // Arrange
         var device = CreateSut();
         var time = DateTime.UtcNow;
 
-        var transition = device.AddStatus(time, atWork: false);
+        // Act
+        var transition = device.UpdateStatus(time, atWork: false);
 
+        // Assert
         transition.Should().Be(DeviceStatusTransition.None);
-        device.Statuses.Should().HaveCount(1);
-        device.Statuses.Single().AtWork.Should().BeFalse();
+        device.LastKnownStatus.Should().BeFalse();
+        device.LastStatusChangedUtc.Should().Be(time);
     }
 
     [Fact]
-    public void AddStatus_ShouldNotAddDuplicateStatus_WhenStateHasNotChanged()
+    public void UpdateStatus_ShouldNotModifyStatus_WhenStateHasNotChanged()
     {
+        // Arrange
         var device = CreateSut();
         var firstTime = DateTime.UtcNow.AddMinutes(-5);
         var secondTime = DateTime.UtcNow;
 
-        device.AddStatus(firstTime, atWork: true);
+        device.UpdateStatus(firstTime, atWork: true);
 
-        var transition = device.AddStatus(secondTime, atWork: true);
+        // Act
+        var transition = device.UpdateStatus(secondTime, atWork: true);
 
+        // Assert
         transition.Should().Be(DeviceStatusTransition.None);
-        device.Statuses.Should().HaveCount(1);
-        device.Statuses.Single().DateTime.Should().Be(firstTime);
+        device.LastKnownStatus.Should().BeTrue();
+        // Время изменения статуса должно остаться первоначальным, так как смены состояния не произошло
+        device.LastStatusChangedUtc.Should().Be(firstTime);
     }
 
     [Fact]
-    public void AddStatus_ShouldAddNewStatus_AndReturnLoggedOut_WhenDeviceGoesOffline()
+    public void UpdateStatus_ShouldUpdateStatus_AndReturnLoggedOut_WhenDeviceGoesOffline()
     {
+        // Arrange
         var device = CreateSut();
         var timeOnline = DateTime.UtcNow.AddMinutes(-10);
         var timeOffline = DateTime.UtcNow;
 
-        device.AddStatus(timeOnline, atWork: true);
+        device.UpdateStatus(timeOnline, atWork: true);
 
-        var transition = device.AddStatus(timeOffline, atWork: false);
+        // Act
+        var transition = device.UpdateStatus(timeOffline, atWork: false);
 
+        // Assert
         transition.Should().Be(DeviceStatusTransition.LoggedOut);
-        device.Statuses.Should().HaveCount(2);
-        device.Statuses.Last().AtWork.Should().BeFalse();
-        device.Statuses.Last().DateTime.Should().Be(timeOffline);
+        device.LastKnownStatus.Should().BeFalse();
+        device.LastStatusChangedUtc.Should().Be(timeOffline);
     }
 
     [Fact]
-    public void AddStatus_ShouldConvertDateTimeToUtc_WhenKindIsLocalOrUnspecified()
+    public void UpdateStatus_ShouldConvertDateTimeToUtc_WhenKindIsLocalOrUnspecified()
     {
+        // Arrange
         var device = CreateSut();
         var localTime = DateTime.Now;
 
-        device.AddStatus(localTime, atWork: true);
+        // Act
+        device.UpdateStatus(localTime, atWork: true);
 
-        device.Statuses.Single().DateTime.Kind.Should().Be(DateTimeKind.Utc);
-        device.Statuses.Single().DateTime.Should().Be(localTime.ToUniversalTime());
+        // Assert
+        device.LastStatusChangedUtc.Should().NotBeNull();
+        device.LastStatusChangedUtc!.Value.Kind.Should().Be(DateTimeKind.Utc);
+        device.LastStatusChangedUtc.Should().Be(localTime.ToUniversalTime());
     }
 }

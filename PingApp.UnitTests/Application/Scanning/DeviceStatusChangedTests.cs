@@ -17,7 +17,7 @@ public class DeviceStatusChangedTests
             AtWork: true,
             DateTime: DateTime.UtcNow);
 
-        await handler.Handle(notification, CancellationToken.None);
+        await handler.Handle(notification, TestContext.Current.CancellationToken);
 
         uiEventBridgeMock.Received(1).PublishStatusChanged(notification);
     }

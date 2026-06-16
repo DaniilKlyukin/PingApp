@@ -23,7 +23,7 @@ public class ScanCommonTests
             {
                 config.Interval = TimeSpan.FromSeconds(intervalSec);
                 _ = config.Interval;
-            }));
+            }, TestContext.Current.CancellationToken));
         }
 
         Action act = () => Task.WaitAll(tasks.ToArray());

@@ -26,7 +26,7 @@ public class LoginGuestHandlerTests
     {
         var command = new LoginGuest.Command();
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().NotBeNull();

@@ -26,11 +26,11 @@ public class DeleteUserHandlerTests
     {
         var command = new DeleteUser.Command(Guid.Empty);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
 
-        await _userRepositoryMock.DidNotReceiveWithAnyArgs().DeleteUserAsync(default!, default);
+        await _userRepositoryMock.DidNotReceiveWithAnyArgs().DeleteUserAsync(default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class DeleteUserHandlerTests
         var userId = Guid.NewGuid();
         var command = new DeleteUser.Command(userId);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
 

@@ -37,7 +37,7 @@ public class GetAdminDataHandlerTests
         _settingsRepositoryMock.GetSettingAsync("ScanIntervalSeconds", "10", Arg.Any<CancellationToken>())
             .Returns("15");
 
-        var result = await _sut.Handle(query, CancellationToken.None);
+        var result = await _sut.Handle(query, TestContext.Current.CancellationToken);
 
         result.Should().NotBeNull();
         result.ScanIntervalSeconds.Should().Be(15);

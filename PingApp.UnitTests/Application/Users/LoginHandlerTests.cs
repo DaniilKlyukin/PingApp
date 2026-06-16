@@ -45,7 +45,7 @@ public class LoginHandlerTests
     {
         var command = new Login.Command("", "pass");
         
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UserErrors.InvalidUsernameEmpty);
@@ -60,7 +60,7 @@ public class LoginHandlerTests
         _userRepositoryMock.GetUserByUsernameAsync(username, Arg.Any<CancellationToken>())
             .Returns((User?)null);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Username.Should().Be("admin");
@@ -81,7 +81,7 @@ public class LoginHandlerTests
         _userRepositoryMock.GetUserByUsernameAsync(username, Arg.Any<CancellationToken>())
             .Returns(existingNonAdminUser);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         existingNonAdminUser.IsAdmin.Should().BeTrue();
@@ -98,7 +98,7 @@ public class LoginHandlerTests
         _userRepositoryMock.GetUserByUsernameAsync(username, Arg.Any<CancellationToken>())
             .Returns((User?)null);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UserErrors.InvalidCredentials);
@@ -121,7 +121,7 @@ public class LoginHandlerTests
         _passwordHasherMock.VerifyPassword("correctPassword", "some_hashed_value")
             .Returns(true);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Username.Should().Be("regular_user");
@@ -143,7 +143,7 @@ public class LoginHandlerTests
         _userRepositoryMock.GetUserByUsernameAsync(Username.Create("admin").Value, Arg.Any<CancellationToken>())
             .Returns((User?)null);
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await handler.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.IsAdmin.Should().BeTrue();

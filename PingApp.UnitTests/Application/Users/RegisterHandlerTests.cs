@@ -44,7 +44,7 @@ public class RegisterHandlerTests
     {
         var command = new Register.Command(new string('a', Username.MinLength - 1), "securePassword123");
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UserErrors.UsernameTooShort);
@@ -55,7 +55,7 @@ public class RegisterHandlerTests
     {
         var command = new Register.Command("admin", "securePassword123");
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UserErrors.ReservedName);
@@ -71,7 +71,7 @@ public class RegisterHandlerTests
         _userRepositoryMock.GetUserByUsernameAsync(username, Arg.Any<CancellationToken>())
             .Returns(existingUser);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UserErrors.DuplicateUsername);
@@ -88,7 +88,7 @@ public class RegisterHandlerTests
 
         _passwordHasherMock.HashPassword("securePassword123").Returns("hashed_secure_pass");
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
 
@@ -108,7 +108,7 @@ public class RegisterHandlerTests
             _loggerMock);
         var command = new Register.Command("admin", "password123");
 
-        var result = await handler.Handle(command, CancellationToken.None);
+        var result = await handler.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(UserErrors.ReservedName);

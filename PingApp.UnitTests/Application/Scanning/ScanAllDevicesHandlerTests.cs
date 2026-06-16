@@ -5,6 +5,7 @@ using NSubstitute;
 using PingApp.Application.Features.Scanning;
 using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.DeviceAggregate;
+using PingApp.Domain.Aggregates.DeviceAggregate.Entities;
 using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 using System.Net;
 
@@ -38,6 +39,7 @@ public class ScanAllDevicesHandlerTests
     [Fact]
     public async Task Handle_ShouldUpdateStatusAndPublishNotification_WhenDeviceStatusChangesToOnline()
     {
+        // Arrange
         var ip = "192.168.1.100";
         var device = Device.Create(DeviceAddress.Create(ip).Value, isAllowedToPing: true, isVisibleToUsers: true);
 
@@ -47,13 +49,22 @@ public class ScanAllDevicesHandlerTests
         _pingServiceMock.PingHostAsync(ip, Arg.Any<CancellationToken>())
             .Returns(true);
 
-        await _sut.Handle(new ScanAllDevices.Command(), CancellationToken.None);
+        // Act
+        await _sut.Handle(new ScanAllDevices.Command(), TestContext.Current.CancellationToken);
 
-        device.Statuses.Should().HaveCount(1);
-        device.Statuses.Single().AtWork.Should().BeTrue();
+        // Assert
+        // 1. Проверяем, что состояние самого устройства обновилось в памяти
+        device.LastKnownStatus.Should().BeTrue();
 
+        // 2. Проверяем, что агрегат устройства был сохранен в базу
         await _repositoryMock.Received(1).UpdateAsync(device, Arg.Any<CancellationToken>());
 
+        // 3. Проверяем, что в базу была записана новая строка истории статуса (append-only лог)
+        await _repositoryMock.Received(1).AddStatusRecordAsync(
+            Arg.Is<StatusRecord>(r => r.DeviceId == device.Id && r.AtWork == true),
+            Arg.Any<CancellationToken>());
+
+        // 4. Проверяем публикацию события в шину MediatR
         await _mediatorMock.Received(1).Publish(
             Arg.Is<DeviceStatusChanged.Notification>(n => n.Address == ip && n.AtWork == true),
             Arg.Any<CancellationToken>());
@@ -64,7 +75,8 @@ public class ScanAllDevicesHandlerTests
     {
         var ip = "192.168.1.100";
         var device = Device.Create(DeviceAddress.Create(ip).Value, isAllowedToPing: true, isVisibleToUsers: true);
-        device.AddStatus(DateTime.UtcNow.AddMinutes(-5), atWork: true); // Устройство уже было онлайн
+
+        device.UpdateStatus(DateTime.UtcNow.AddMinutes(-5), atWork: true);
 
         _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device> { device });
@@ -72,12 +84,17 @@ public class ScanAllDevicesHandlerTests
         _pingServiceMock.PingHostAsync(ip, Arg.Any<CancellationToken>())
             .Returns(true);
 
-        await _sut.Handle(new ScanAllDevices.Command(), CancellationToken.None);
+        await _sut.Handle(new ScanAllDevices.Command(), TestContext.Current.CancellationToken);
 
-        device.Statuses.Should().HaveCount(1);
+        device.LastKnownStatus.Should().BeTrue();
 
         await _repositoryMock.Received(1).UpdateAsync(device, Arg.Any<CancellationToken>());
-        await _mediatorMock.DidNotReceiveWithAnyArgs().Publish(default!, default);
+
+        await _repositoryMock.DidNotReceive().AddStatusRecordAsync(
+            Arg.Any<StatusRecord>(),
+            Arg.Any<CancellationToken>());
+
+        await _mediatorMock.DidNotReceiveWithAnyArgs().Publish(default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -99,7 +116,7 @@ public class ScanAllDevicesHandlerTests
         _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device>());
 
-        await _sut.Handle(new ScanAllDevices.Command(), CancellationToken.None);
+        await _sut.Handle(new ScanAllDevices.Command(), TestContext.Current.CancellationToken);
 
         await _repositoryMock.Received(1).AddDeviceAsync(
             Arg.Is<Device>(d => d.Address.Value == "192.168.1.10" && !d.IsVisibleToUsers && d.IsAllowedToPing),
@@ -122,7 +139,7 @@ public class ScanAllDevicesHandlerTests
         _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device> { existingDevice });
 
-        await _sut.Handle(new ScanAllDevices.Command(), CancellationToken.None);
+        await _sut.Handle(new ScanAllDevices.Command(), TestContext.Current.CancellationToken);
 
         await _repositoryMock.DidNotReceive().AddDeviceAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
     }

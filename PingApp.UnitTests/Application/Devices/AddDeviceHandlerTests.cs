@@ -35,11 +35,11 @@ public class AddDeviceHandlerTests
     {
         var command = new AddDevice.Command("invalid-ip-address#", "My PC");
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
 
-        await _repositoryMock.DidNotReceiveWithAnyArgs().GetByAddressAsync(default!, default);
+        await _repositoryMock.DidNotReceiveWithAnyArgs().GetByAddressAsync(default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -52,7 +52,7 @@ public class AddDeviceHandlerTests
         _repositoryMock.GetByAddressAsync(address, Arg.Any<CancellationToken>())
             .Returns((Device?)null);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -72,12 +72,12 @@ public class AddDeviceHandlerTests
         _repositoryMock.GetByAddressAsync(address, Arg.Any<CancellationToken>())
             .Returns(deviceInDb);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsFailure.Should().BeTrue();
         result.Error.Should().Be(DeviceErrors.NotFound);
 
-        await _repositoryMock.DidNotReceiveWithAnyArgs().AddSubscriptionAsync(default!, default!, default!, default);
+        await _repositoryMock.DidNotReceiveWithAnyArgs().AddSubscriptionAsync(default!, default!, default!, TestContext.Current.CancellationToken);
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class AddDeviceHandlerTests
         _repositoryMock.ExistsSubscriptionAsync(userId, address, Arg.Any<CancellationToken>())
             .Returns(false);
 
-        var result = await _sut.Handle(command, CancellationToken.None);
+        var result = await _sut.Handle(command, TestContext.Current.CancellationToken);
 
         result.IsSuccess.Should().BeTrue();
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using PingApp.Application.Common.Behaviors;
 using PingApp.Application.Features.Devices;
 using PingApp.Application.Features.Scanning.Background;
 using PingApp.Application.Features.Scanning.Common;
@@ -17,7 +18,11 @@ public static class DependencyInjection
     /// <param name="registerBackgroundScanner">Определяет, нужно ли этому хосту запускать фоновый воркер сканирования.</param>
     public static IServiceCollection AddApplication(this IServiceCollection services, bool registerBackgroundScanner = false)
     {
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AddDevice.Command).Assembly));
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(AddDevice.Command).Assembly);
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+        });
 
         services.AddSingleton<IScanConfiguration, ScanConfiguration>();
         services.AddSingleton<IUiEventBridge, UiEventBridge>();

@@ -14,7 +14,7 @@ public class DatabaseFixture : IAsyncLifetime
 
     public string ConnectionString => _dbContainer.GetConnectionString();
 
-    public async Task InitializeAsync()
+    public async ValueTask InitializeAsync()
     {
         await _dbContainer.StartAsync();
 
@@ -26,7 +26,7 @@ public class DatabaseFixture : IAsyncLifetime
         await context.Database.MigrateAsync();
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         await _dbContainer.StopAsync();
     }

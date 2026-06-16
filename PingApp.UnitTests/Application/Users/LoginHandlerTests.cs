@@ -25,7 +25,7 @@ public class LoginHandlerTests
         _passwordHasherMock = Substitute.For<IPasswordHasher>();
         _loggerMock = Substitute.For<ILogger<Login.Handler>>();
 
-        var inMemorySettings = new Dictionary<string, string> {
+        var inMemorySettings = new Dictionary<string, string?> {
             {"AdminSettings:Username", "admin"},
             {"AdminSettings:Password", "adminPass"}
         };

@@ -172,7 +172,6 @@ partial class MainForm
     private DataGridView dataGridView;
     private BindingSource datagridUserItemBindingSource;
     private DataGridViewTextBoxColumn nameOrAddressDataGridViewTextBoxColumn;
-    private DataGridViewTextBoxColumn Nickname;
     private DataGridViewTextBoxColumn statusStringDataGridViewTextBoxColumn;
     private DataGridViewCheckBoxColumn atWorkDataGridViewCheckBoxColumn;
     private Button adminButton;

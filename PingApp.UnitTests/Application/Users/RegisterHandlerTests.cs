@@ -25,7 +25,7 @@ public class RegisterHandlerTests
         _passwordHasherMock = Substitute.For<IPasswordHasher>();
         _loggerMock = Substitute.For<ILogger<Register.Handler>>();
 
-        var inMemorySettings = new Dictionary<string, string> {
+        var inMemorySettings = new Dictionary<string, string?> {
             {"AdminSettings:Username", "admin"}
         };
         _configuration = new ConfigurationBuilder()

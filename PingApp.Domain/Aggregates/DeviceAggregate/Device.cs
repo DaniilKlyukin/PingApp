@@ -9,7 +9,7 @@ namespace PingApp.Domain.Aggregates.DeviceAggregate;
 public class Device : IAggregateRoot
 {
     public DeviceId Id { get; private set; } = DeviceId.New();
-    public DeviceAddress Address { get; private set; }
+    public DeviceAddress Address { get; private set; } = null!;
     public bool IsAllowedToPing { get; set; } = true;
     public bool IsVisibleToUsers { get; set; } = false;
 

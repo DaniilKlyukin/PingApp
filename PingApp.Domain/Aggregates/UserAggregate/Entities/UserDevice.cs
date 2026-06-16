@@ -10,7 +10,7 @@ public class UserDevice
 
     public DeviceId DeviceId { get; private set; }
 
-    public DeviceNickname DeviceNickname { get; private set; }
+    public DeviceNickname DeviceNickname { get; private set; } = null!;
 
     private UserDevice() { }
 

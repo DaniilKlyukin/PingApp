@@ -10,7 +10,7 @@ namespace PingApp.Domain.Aggregates.UserAggregate;
 public class User : IAggregateRoot
 {
     public UserId Id { get; private set; } = UserId.New();
-    public Username Username { get; private set; }
+    public Username Username { get; private set; } = null!;
     public string? PasswordHash { get; private set; }
     public bool IsGuest { get; set; }
     public bool IsAdmin { get; set; }

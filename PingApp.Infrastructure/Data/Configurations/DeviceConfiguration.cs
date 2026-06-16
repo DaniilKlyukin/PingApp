@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PingApp.Domain.Aggregates.DeviceAggregate;
 using PingApp.Domain.Aggregates.DeviceAggregate.Common;
+using PingApp.Domain.Aggregates.DeviceAggregate.Entities;
 using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 
 namespace PingApp.Infrastructure.Data.Configurations;
@@ -35,13 +36,13 @@ public class DeviceConfiguration : IEntityTypeConfiguration<Device>
         builder.Property(d => d.IsVisibleToUsers)
             .HasDefaultValue(false);
 
-        builder.HasMany(d => d.Statuses)
+        builder.Property(d => d.LastKnownStatus);
+        builder.Property(d => d.LastStatusChangedUtc);
+
+        builder.HasMany<StatusRecord>()
             .WithOne(s => s.Device)
             .HasForeignKey(s => s.DeviceId)
             .OnDelete(DeleteBehavior.Cascade);
-
-        builder.Navigation(d => d.Statuses)
-            .UsePropertyAccessMode(PropertyAccessMode.Field);
 
         builder.Navigation(d => d.UserDevices)
             .UsePropertyAccessMode(PropertyAccessMode.Field);

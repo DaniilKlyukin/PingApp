@@ -24,23 +24,31 @@ public static class GetStatisticsList
             var userDevices = await _repository.GetUserDevicesAsync(_userContext.UserId, cancellationToken);
             var allDevices = await _repository.GetAllDevicesNoTrackingAsync(cancellationToken);
 
-            return userDevices
+            var activeDevices = userDevices
                 .Join(
                     allDevices,
                     ud => ud.DeviceId,
                     d => d.Id,
                     (ud, d) => new { UserDevice = ud, Device = d })
                 .Where(ud => ud.Device.IsVisibleToUsers && ud.Device.IsAllowedToPing)
-                .Select(ud =>
+                .ToList();
+
+            var deviceIds = activeDevices.Select(x => x.Device.Id).ToList();
+
+            var history = await _repository.GetStatusHistoryAsync(deviceIds, cancellationToken);
+
+            return activeDevices.Select(ud =>
+            {
+                var d = ud.Device;
+                var deviceHistory = history.Where(h => h.DeviceId == d.Id).ToList();
+
+                return new UserStatistics
                 {
-                    var d = ud.Device;
-                    return new UserStatistics
-                    {
-                        Address = d.Address.Value,
-                        Nickname = ud.UserDevice.DeviceNickname.Value,
-                        Statuses = d.Statuses.Select(s => new WorkStatus(s.DateTime, s.AtWork)).ToList()
-                    };
-                }).ToList();
+                    Address = d.Address.Value,
+                    Nickname = ud.UserDevice.DeviceNickname?.Value,
+                    Statuses = deviceHistory.Select(s => new WorkStatus(s.DateTime, s.AtWork)).ToList()
+                };
+            }).ToList();
         }
     }
 }

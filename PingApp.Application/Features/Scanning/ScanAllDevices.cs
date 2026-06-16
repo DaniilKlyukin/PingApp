@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.DeviceAggregate;
+using PingApp.Domain.Aggregates.DeviceAggregate.Entities;
 using PingApp.Domain.Aggregates.DeviceAggregate.Enums;
 using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 
@@ -107,13 +108,22 @@ public static class ScanAllDevices
                 try
                 {
                     var device = result.Device;
-                    var transition = device.AddStatus(DateTime.Now, result.IsOnline);
+
+                    var transition = device.UpdateStatus(DateTime.Now, result.IsOnline);
 
                     await _repository.UpdateAsync(device, cancellationToken);
 
                     if (transition != DeviceStatusTransition.None)
                     {
-                        _logger.LogInformation("Устройство {Address} изменило сетевой статус. Доступно: {IsOnline} (Событие: {Transition})",
+                        var historyRecord = new StatusRecord
+                        {
+                            DateTime = DateTime.UtcNow,
+                            AtWork = result.IsOnline,
+                            DeviceId = device.Id
+                        };
+                        await _repository.AddStatusRecordAsync(historyRecord, cancellationToken);
+
+                        _logger.LogInformation("Устройство {Address} изменило статус. Доступно: {IsOnline} (Событие: {Transition})",
                             device.Address.Value, result.IsOnline, transition.ToString());
 
                         await _mediator.Publish(new DeviceStatusChanged.Notification(
@@ -125,7 +135,7 @@ public static class ScanAllDevices
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Ошибка при сохранении статуса устройства {Address} в базу данных", result.Device.Address.Value);
+                    _logger.LogError(ex, "Ошибка при сохранении статуса устройства {Address}", result.Device.Address.Value);
                 }
             }
 

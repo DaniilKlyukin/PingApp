@@ -22,5 +22,8 @@ public class StatusRecordConfiguration : IEntityTypeConfiguration<StatusRecord>
                 v => v,
                 v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
             );
+
+        builder.HasIndex(s => new { s.DeviceId, s.DateTime })
+            .HasDatabaseName("IX_StatusRecord_DeviceId_DateTime_Desc");
     }
 }

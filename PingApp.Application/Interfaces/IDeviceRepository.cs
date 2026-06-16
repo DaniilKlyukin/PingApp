@@ -1,4 +1,6 @@
 ﻿using PingApp.Domain.Aggregates.DeviceAggregate;
+using PingApp.Domain.Aggregates.DeviceAggregate.Common;
+using PingApp.Domain.Aggregates.DeviceAggregate.Entities;
 using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 using PingApp.Domain.Aggregates.UserAggregate.Common;
 using PingApp.Domain.Aggregates.UserAggregate.Entities;
@@ -19,9 +21,10 @@ public interface IDeviceRepository
     Task<List<Device>> GetAllTrackedDevicesAsync(CancellationToken cancellationToken = default);
     Task UpdateAsync(Device device, CancellationToken cancellationToken = default);
     Task ClearAllStatusesAsync(CancellationToken cancellationToken = default);
-
     Task<Device?> GetByAddressAsync(DeviceAddress address, CancellationToken cancellationToken = default);
     Task AddDeviceAsync(Device device, CancellationToken cancellationToken = default);
+    Task AddStatusRecordAsync(StatusRecord record, CancellationToken cancellationToken = default);
+    Task<List<StatusRecord>> GetStatusHistoryAsync(List<DeviceId> deviceIds, CancellationToken cancellationToken = default);
 }
 
 public record DeviceWithLastStatus(

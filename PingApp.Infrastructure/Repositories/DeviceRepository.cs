@@ -85,11 +85,23 @@ public class DeviceRepository : IDeviceRepository
         }
     }
 
+    public async Task<List<Device>> GetAllDevicesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Devices
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Device>> GetAllTrackedDevicesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Devices
             .Where(d => d.IsAllowedToPing && d.UserDevices.Any())
-            .Include(d => d.Statuses)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<Device>> GetAllDevicesNoTrackingAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Devices
+            .AsNoTracking()
             .ToListAsync(cancellationToken);
     }
 
@@ -106,21 +118,6 @@ public class DeviceRepository : IDeviceRepository
         _context.ChangeTracker.Clear();
     }
 
-    public async Task<List<Device>> GetAllDevicesAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.Devices
-            .Include(d => d.Statuses)
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<List<Device>> GetAllDevicesNoTrackingAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.Devices
-            .AsNoTracking()
-            .Include(d => d.Statuses)
-            .ToListAsync(cancellationToken);
-    }
-
     public async Task<List<Device>> GetAllowedDevicesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Devices
@@ -131,7 +128,6 @@ public class DeviceRepository : IDeviceRepository
     public async Task<Device?> GetByAddressAsync(DeviceAddress address, CancellationToken cancellationToken = default)
     {
         return await _context.Devices
-            .Include(d => d.Statuses)
             .FirstOrDefaultAsync(d => d.Address == address, cancellationToken);
     }
 
@@ -158,15 +154,24 @@ public class DeviceRepository : IDeviceRepository
             .Select(x => new DeviceWithLastStatus(
                 x.Device.Address.Value,
                 x.UserDevice.DeviceNickname == null ? null : x.UserDevice.DeviceNickname.Value,
-                x.Device.Statuses
-                    .OrderByDescending(s => s.DateTime)
-                    .Select(s => (bool?)s.AtWork)
-                    .FirstOrDefault(),
-                x.Device.Statuses
-                    .OrderByDescending(s => s.DateTime)
-                    .Select(s => (DateTime?)s.DateTime)
-                    .FirstOrDefault()
+                x.Device.LastKnownStatus,
+                x.Device.LastStatusChangedUtc
             ))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task AddStatusRecordAsync(StatusRecord record, CancellationToken cancellationToken = default)
+    {
+        _context.Set<StatusRecord>().Add(record);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<List<StatusRecord>> GetStatusHistoryAsync(List<DeviceId> deviceIds, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<StatusRecord>()
+            .AsNoTracking()
+            .Where(s => deviceIds.Contains(s.DeviceId))
+            .OrderBy(s => s.DateTime)
             .ToListAsync(cancellationToken);
     }
 }

@@ -29,6 +29,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(Username.MaxLength)
             .IsRequired();
 
+        builder.Property(u => u.CreatedAtUtc)
+            .IsRequired();
+
         builder.HasIndex(u => u.Username)
             .IsUnique();
 

@@ -1,11 +1,9 @@
 ﻿using MediatR;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using PingApp.Application.Features.Scanning;
 using PingApp.Application.Features.Scanning.Common;
 using PingApp.Application.Interfaces;
 
-namespace PingApp.Application.Features.Scanning.Background;
+namespace PingApp.Worker.BackgroundServices;
 
 /// <summary>
 /// Фоновая служба непрерывного циклического мониторинга сетевых устройств.
@@ -28,7 +26,7 @@ public class DeviceScanBackgroundService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Фоновый сервис мониторинга устройств успешно запущен.");
+        _logger.LogInformation("Фоновый сервис мониторинга устройств успешно запущен в контейнере воркера.");
 
         while (!stoppingToken.IsCancellationRequested)
         {

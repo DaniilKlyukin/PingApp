@@ -3,9 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PingApp.Application.Features.Scanning;
-using PingApp.Application.Features.Scanning.Background;
 using PingApp.Application.Features.Scanning.Common;
 using PingApp.Application.Interfaces;
+using PingApp.Worker.BackgroundServices;
 
 namespace PingApp.UnitTests.Application.Scanning;
 

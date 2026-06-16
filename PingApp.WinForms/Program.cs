@@ -31,7 +31,7 @@ internal static class Program
 
             var host = BuildHost(args);
 
-            await MigrateAndConfigureDatabaseAsync(host);
+            await ConfigureDatabaseAsync(host);
 
             await RunApplicationLoopAsync(host);
         }
@@ -94,7 +94,7 @@ internal static class Program
         services.AddDbContext<PingDbContext>(options =>
                 options.UseNpgsql(connectionString), ServiceLifetime.Transient);
 
-        services.AddApplication(registerBackgroundScanner: true);
+        services.AddApplication();
         services.AddInfrastructure(connectionString);
 
         services.AddTransient<MainForm>();
@@ -126,14 +126,22 @@ internal static class Program
     }
 
     /// <summary>
-    /// Применение миграций БД и первичная настройка интервала сканирования.
+    /// Первичная настройка интервала сканирования.
     /// </summary>
-    private static async Task MigrateAndConfigureDatabaseAsync(IHost host)
+    private static async Task ConfigureDatabaseAsync(IHost host)
     {
         using var scope = host.Services.CreateScope();
 
         var db = scope.ServiceProvider.GetRequiredService<PingDbContext>();
-        await db.Database.MigrateAsync();
+        if (!await db.Database.CanConnectAsync())
+        {
+            MessageBox.Show(
+                "Не удалось подключиться к серверу базы данных. Пожалуйста, убедитесь, что служба запущена.",
+                "Ошибка подключения",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
+            return;
+        }
 
         var settingsRepository = scope.ServiceProvider.GetRequiredService<IGlobalSettingsRepository>();
         var intervalStr = await settingsRepository.GetSettingAsync("ScanIntervalSeconds", "10");
@@ -167,7 +175,6 @@ internal static class Program
 
                 var userContext = host.Services.GetRequiredService<IUserContext>();
 
-                // Удаление гостевого аккаунта при завершении сессии
                 if (userContext.IsGuest && userContext.UserId != UserId.Empty)
                 {
                     var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();

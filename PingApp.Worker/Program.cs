@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PingApp.Application;
 using PingApp.Infrastructure;
 using PingApp.Infrastructure.Data;
+using PingApp.Worker.BackgroundServices;
 using Serilog;
 using Serilog.Exceptions;
 
@@ -45,8 +46,11 @@ public class Program
                     string connectionString = hostContext.Configuration.GetConnectionString("DefaultConnection")
                         ?? "Host=pingapp_db;Database=pingapp_db;Username=postgres;Password=your_password";
 
-                    services.AddApplication(registerBackgroundScanner: true);
+                    services.AddApplication();
                     services.AddInfrastructure(connectionString);
+
+                    services.AddHostedService<DeviceScanBackgroundService>();
+                    services.AddHostedService<GuestCleanupBackgroundService>();
                 })
                 .Build();
 

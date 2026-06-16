@@ -37,6 +37,19 @@ public class UserRepository : IUserRepository
         }
     }
 
+    public async Task DeleteExpiredGuestsAsync(DateTime threshold, CancellationToken cancellationToken = default)
+    {
+        var expiredGuests = await _context.Users
+            .Where(u => u.IsGuest && u.CreatedAtUtc < threshold)
+            .ToListAsync(cancellationToken);
+
+        if (expiredGuests.Count > 0)
+        {
+            _context.Users.RemoveRange(expiredGuests);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+    }
+
     public async Task UpdateUserAsync(User user, CancellationToken cancellationToken = default)
     {
         _context.Users.Update(user);

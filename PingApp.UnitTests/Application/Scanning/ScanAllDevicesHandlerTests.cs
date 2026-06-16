@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PingApp.Application.Features.Scanning;
@@ -18,6 +19,7 @@ public class ScanAllDevicesHandlerTests
     private readonly ILocalNetworkProvider _networkProviderMock;
     private readonly IMediator _mediatorMock;
     private readonly ILogger<ScanAllDevices.Handler> _loggerMock;
+    private readonly IConfiguration _configurationMock;
     private readonly ScanAllDevices.Handler _sut;
 
     public ScanAllDevicesHandlerTests()
@@ -27,12 +29,14 @@ public class ScanAllDevicesHandlerTests
         _networkProviderMock = Substitute.For<ILocalNetworkProvider>();
         _mediatorMock = Substitute.For<IMediator>();
         _loggerMock = Substitute.For<ILogger<ScanAllDevices.Handler>>();
+        _configurationMock = Substitute.For<IConfiguration>();
 
         _sut = new ScanAllDevices.Handler(
             _repositoryMock,
             _pingServiceMock,
             _networkProviderMock,
             _mediatorMock,
+            _configurationMock,
             _loggerMock);
     }
 
@@ -53,18 +57,14 @@ public class ScanAllDevicesHandlerTests
         await _sut.Handle(new ScanAllDevices.Command(), TestContext.Current.CancellationToken);
 
         // Assert
-        // 1. Проверяем, что состояние самого устройства обновилось в памяти
         device.LastKnownStatus.Should().BeTrue();
 
-        // 2. Проверяем, что агрегат устройства был сохранен в базу
         await _repositoryMock.Received(1).UpdateAsync(device, Arg.Any<CancellationToken>());
 
-        // 3. Проверяем, что в базу была записана новая строка истории статуса (append-only лог)
         await _repositoryMock.Received(1).AddStatusRecordAsync(
             Arg.Is<StatusRecord>(r => r.DeviceId == device.Id && r.AtWork == true),
             Arg.Any<CancellationToken>());
 
-        // 4. Проверяем публикацию события в шину MediatR
         await _mediatorMock.Received(1).Publish(
             Arg.Is<DeviceStatusChanged.Notification>(n => n.Address == ip && n.AtWork == true),
             Arg.Any<CancellationToken>());

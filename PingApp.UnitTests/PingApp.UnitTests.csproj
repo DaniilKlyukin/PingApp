@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PingApp.Application\PingApp.Application.csproj" />
     <ProjectReference Include="..\PingApp.Domain\PingApp.Domain.csproj" />
+    <ProjectReference Include="..\PingApp.Worker\PingApp.Worker.csproj" />
   </ItemGroup>
 
   <ItemGroup>

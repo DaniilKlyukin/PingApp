@@ -9,5 +9,6 @@ public interface IUserRepository
     Task<User?> GetUserByUsernameAsync(Username username, CancellationToken cancellationToken = default);
     Task AddUserAsync(User user, CancellationToken cancellationToken = default);
     Task DeleteUserAsync(UserId userId, CancellationToken cancellationToken = default);
+    Task DeleteExpiredGuestsAsync(DateTime threshold, CancellationToken cancellationToken = default);
     Task UpdateUserAsync(User user, CancellationToken cancellationToken = default);
 }

@@ -137,6 +137,12 @@ public class DeviceRepository : IDeviceRepository
         await _context.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task AddDevicesRangeAsync(IEnumerable<Device> devices, CancellationToken cancellationToken = default)
+    {
+        await _context.Devices.AddRangeAsync(devices, cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     public async Task<List<DeviceWithLastStatus>> GetUserDevicesWithLastStatusAsync(
         UserId userId,
         CancellationToken cancellationToken = default)

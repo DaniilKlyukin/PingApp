@@ -15,6 +15,8 @@ public class User : IAggregateRoot
     public bool IsGuest { get; set; }
     public bool IsAdmin { get; set; }
 
+    public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow;
+
     private readonly List<UserDevice> _userDevices = [];
     public IReadOnlyCollection<UserDevice> UserDevices => _userDevices.AsReadOnly();
 
@@ -27,7 +29,8 @@ public class User : IAggregateRoot
             Id = UserId.New(),
             Username = username,
             IsGuest = isGuest,
-            IsAdmin = isAdmin
+            IsAdmin = isAdmin,
+            CreatedAtUtc = DateTime.UtcNow
         };
     }
 

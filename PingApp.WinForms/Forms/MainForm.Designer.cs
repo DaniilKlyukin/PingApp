@@ -20,7 +20,6 @@ partial class MainForm
     private void InitializeComponent()
     {
         components = new System.ComponentModel.Container();
-        System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
         timer = new System.Windows.Forms.Timer(components);
         notifyIcon = new NotifyIcon(components);
         showPlotButton = new Button();
@@ -28,11 +27,11 @@ partial class MainForm
         deleteUserButton = new Button();
         dataGridView = new DataGridView();
         nameOrAddressDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
-        Nickname = new DataGridViewTextBoxColumn();
         statusStringDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
         atWorkDataGridViewCheckBoxColumn = new DataGridViewCheckBoxColumn();
         datagridUserItemBindingSource = new BindingSource(components);
         adminButton = new Button();
+        logoutButton = new Button();
         ((System.ComponentModel.ISupportInitialize)dataGridView).BeginInit();
         ((System.ComponentModel.ISupportInitialize)datagridUserItemBindingSource).BeginInit();
         SuspendLayout();
@@ -45,7 +44,6 @@ partial class MainForm
         // 
         // notifyIcon
         // 
-        notifyIcon.Icon = (Icon)resources.GetObject("notifyIcon.Icon");
         notifyIcon.Visible = true;
         notifyIcon.MouseDoubleClick += notifyIcon_MouseDoubleClick;
         // 
@@ -86,12 +84,11 @@ partial class MainForm
         dataGridView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         dataGridView.AutoGenerateColumns = false;
         dataGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-        dataGridView.Columns.AddRange(new DataGridViewColumn[] { nameOrAddressDataGridViewTextBoxColumn, Nickname, statusStringDataGridViewTextBoxColumn, atWorkDataGridViewCheckBoxColumn });
+        dataGridView.Columns.AddRange(new DataGridViewColumn[] { nameOrAddressDataGridViewTextBoxColumn, statusStringDataGridViewTextBoxColumn, atWorkDataGridViewCheckBoxColumn });
         dataGridView.DataSource = datagridUserItemBindingSource;
         dataGridView.Location = new Point(280, 12);
         dataGridView.Name = "dataGridView";
         dataGridView.ReadOnly = true;
-        dataGridView.RowTemplate.Height = 25;
         dataGridView.Size = new Size(571, 216);
         dataGridView.TabIndex = 13;
         dataGridView.PreviewKeyDown += dataGridView_PreviewKeyDown;
@@ -103,14 +100,6 @@ partial class MainForm
         nameOrAddressDataGridViewTextBoxColumn.HeaderText = "Адрес";
         nameOrAddressDataGridViewTextBoxColumn.Name = "nameOrAddressDataGridViewTextBoxColumn";
         nameOrAddressDataGridViewTextBoxColumn.ReadOnly = true;
-        // 
-        // Nickname
-        // 
-        Nickname.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-        Nickname.DataPropertyName = "Nickname";
-        Nickname.HeaderText = "Имя";
-        Nickname.Name = "Nickname";
-        Nickname.ReadOnly = true;
         // 
         // statusStringDataGridViewTextBoxColumn
         // 
@@ -143,6 +132,16 @@ partial class MainForm
         adminButton.Visible = false;
         adminButton.Click += adminButton_Click;
         // 
+        // logoutButton
+        // 
+        logoutButton.Location = new Point(12, 138);
+        logoutButton.Name = "logoutButton";
+        logoutButton.Size = new Size(256, 36);
+        logoutButton.TabIndex = 16;
+        logoutButton.Text = "Выйти из профиля";
+        logoutButton.UseVisualStyleBackColor = true;
+        logoutButton.Click += logoutButton_Click;
+        // 
         // MainForm
         // 
         AutoScaleDimensions = new SizeF(7F, 15F);
@@ -153,8 +152,9 @@ partial class MainForm
         Controls.Add(deleteUserButton);
         Controls.Add(addUserButton);
         Controls.Add(showPlotButton);
-        Icon = (Icon)resources.GetObject("$this.Icon");
+        Controls.Add(logoutButton);
         Name = "MainForm";
+        StartPosition = FormStartPosition.CenterScreen;
         Text = "Сканер компьютеров в сети";
         Load += MainForm_Load;
         ((System.ComponentModel.ISupportInitialize)dataGridView).EndInit();
@@ -176,4 +176,5 @@ partial class MainForm
     private DataGridViewTextBoxColumn statusStringDataGridViewTextBoxColumn;
     private DataGridViewCheckBoxColumn atWorkDataGridViewCheckBoxColumn;
     private Button adminButton;
+    private Button logoutButton;
 }

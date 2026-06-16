@@ -17,6 +17,8 @@ public partial class MainForm : Form
     private readonly ILogger<MainForm> _logger;
     private readonly BindingSource _bindingSource = new();
 
+    public bool LogoutRequested { get; private set; } = false;
+
     public MainForm(
         IMediator mediator,
         IUiEventBridge uiEventBridge,
@@ -65,6 +67,12 @@ public partial class MainForm : Form
     private async void timer_Tick(object sender, EventArgs e)
     {
         await RefreshDataGridAsync();
+    }
+
+    private void logoutButton_Click(object sender, EventArgs e)
+    {
+        LogoutRequested = true;
+        this.Close();
     }
 
     private void OnDeviceStatusChanged(DeviceStatusChanged.Notification notification)

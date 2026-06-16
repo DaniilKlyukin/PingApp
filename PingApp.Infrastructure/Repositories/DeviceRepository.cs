@@ -102,6 +102,8 @@ public class DeviceRepository : IDeviceRepository
     public async Task ClearAllStatusesAsync(CancellationToken cancellationToken = default)
     {
         await _context.Set<StatusRecord>().ExecuteDeleteAsync(cancellationToken);
+
+        _context.ChangeTracker.Clear();
     }
 
     public async Task<List<Device>> GetAllDevicesAsync(CancellationToken cancellationToken = default)

@@ -82,10 +82,17 @@ internal static class Program
             loggingBuilder.AddSerilog(dispose: true);
         });
 
-        var connectionString = "Host=localhost;Database=pingapp_db;Username=postgres;Password=your_password";
+        var configuration = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .Build();
+
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? "Host=localhost;Database=pingapp_db;Username=postgres;Password=your_password";
 
         services.AddDbContext<PingDbContext>(options =>
-            options.UseNpgsql(connectionString), ServiceLifetime.Transient);
+                options.UseNpgsql(connectionString), ServiceLifetime.Transient);
 
         services.AddApplication(registerBackgroundScanner: true);
         services.AddInfrastructure(connectionString);

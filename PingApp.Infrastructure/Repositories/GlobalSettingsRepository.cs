@@ -1,7 +1,6 @@
 ﻿using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.SettingsAggregate;
 using PingApp.Infrastructure.Data;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace PingApp.Infrastructure.Repositories;
 

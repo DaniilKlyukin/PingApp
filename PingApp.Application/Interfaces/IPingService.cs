@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace PingApp.Application.Interfaces;
+﻿namespace PingApp.Application.Interfaces;
 
 public interface IPingService
 {

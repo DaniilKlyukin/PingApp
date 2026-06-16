@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using PingApp.Domain.Aggregates.DeviceAggregate;
 using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
 using PingApp.Infrastructure.Data;
 using PingApp.Infrastructure.Repositories;
-using FluentAssertions;
 
 namespace PingApp.IntegrationTests;
 

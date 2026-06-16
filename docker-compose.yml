@@ -35,6 +35,96 @@ services:
     depends_on:
       - pingapp_db
 
+  redis:
+    image: redis:7-alpine
+    container_name: pingapp-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - pingapp-redis-data:/data
+    networks:
+      - pingapp-net
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: pingapp-elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - pingapp-elastic-data:/usr/share/elasticsearch/data
+    networks:
+      - pingapp-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    container_name: pingapp-kibana
+    restart: always
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - pingapp-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.51
+    container_name: pingapp-jaeger
+    restart: always
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+    networks:
+      - pingapp-net
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.89.0
+    container_name: pingapp-otel-collector
+    restart: always
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./deploy/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4318:4318"
+    depends_on:
+      - jaeger
+    networks:
+      - pingapp-net
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: pingapp-prometheus
+    restart: always
+    volumes:
+      - ./deploy/prometheus.yml:/etc/prometheus/prometheus.yml
+      - pingapp-prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - otel-collector
+    networks:
+      - pingapp-net
+
+  grafana:
+    image: grafana/grafana:10.2.2
+    container_name: pingapp-grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - pingapp-grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - pingapp-net
+
   backend-worker:
     image: pingapp-backend-worker:latest
     build:
@@ -44,11 +134,14 @@ services:
     restart: always
     environment:
       - ConnectionStrings__DefaultConnection=Host=pingapp_db;Database=pingapp_db;Username=postgres;Password=your_password
+      - ElasticConfiguration__Uri=http://elasticsearch:9200
     networks:
       - pingapp-net
     depends_on:
       pingapp_db:
         condition: service_healthy
+      elasticsearch:
+        condition: service_started
 
 networks:
   pingapp-net:
@@ -56,3 +149,7 @@ networks:
 
 volumes:
   pingapp-pgdata:
+  pingapp-redis-data:
+  pingapp-elastic-data:
+  pingapp-prometheus-data:
+  pingapp-grafana-data:

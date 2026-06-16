@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PingApp.Application.Features.Users;
 using PingApp.Application.Interfaces;
@@ -9,12 +10,15 @@ namespace PingApp.UnitTests.Application.Users;
 public class DeleteUserHandlerTests
 {
     private readonly IUserRepository _userRepositoryMock;
+    private readonly ILogger<DeleteUser.Handler> _loggerMock;
     private readonly DeleteUser.Handler _sut;
 
     public DeleteUserHandlerTests()
     {
         _userRepositoryMock = Substitute.For<IUserRepository>();
-        _sut = new DeleteUser.Handler(_userRepositoryMock);
+        _loggerMock = Substitute.For<ILogger<DeleteUser.Handler>>();
+
+        _sut = new DeleteUser.Handler(_userRepositoryMock, _loggerMock);
     }
 
     [Fact]

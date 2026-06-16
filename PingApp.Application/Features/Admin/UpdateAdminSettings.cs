@@ -39,16 +39,24 @@ public static class UpdateAdminSettings
 
         public async Task<Unit> Handle(Command request, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Изменение глобальных настроек. Интервал сканирования: {Interval} секунд. Массовое действие: {BulkAction}",
+            _logger.LogInformation(
+                "Запрос на изменение настроек. Новый интервал: {Interval} сек. Массовое действие: {BulkAction}",
                 request.ScanIntervalSeconds, request.BulkAction?.ToString() ?? "нет");
 
             await _settingsRepository.SaveSettingAsync("ScanIntervalSeconds", request.ScanIntervalSeconds.ToString(), cancellationToken);
 
             var allDevices = await _deviceRepository.GetAllDevicesAsync(cancellationToken);
+            int updatedDevicesCount = 0;
+
             foreach (var device in allDevices)
             {
+                bool hasChanged = false;
+
                 if (request.BulkAction.HasValue)
                 {
+                    var previousPing = device.IsAllowedToPing;
+                    var previousVisibility = device.IsVisibleToUsers;
+
                     switch (request.BulkAction.Value)
                     {
                         case BulkActionType.AllowAllPing:
@@ -64,6 +72,8 @@ public static class UpdateAdminSettings
                             device.IsVisibleToUsers = false;
                             break;
                     }
+
+                    hasChanged = (previousPing != device.IsAllowedToPing) || (previousVisibility != device.IsVisibleToUsers);
                 }
                 else
                 {
@@ -72,17 +82,28 @@ public static class UpdateAdminSettings
                     {
                         if (device.IsAllowedToPing != toggle.IsAllowedToPing || device.IsVisibleToUsers != toggle.IsVisibleToUsers)
                         {
-                            _logger.LogDebug("Обновление флагов устройства {Address}: Разрешен Пинг={IsAllowed}, Видим={IsVisible}",
-                                device.Address.Value, toggle.IsAllowedToPing, toggle.IsVisibleToUsers);
+                            device.IsAllowedToPing = toggle.IsAllowedToPing;
+                            device.IsVisibleToUsers = toggle.IsVisibleToUsers;
+                            hasChanged = true;
                         }
-                        device.IsAllowedToPing = toggle.IsAllowedToPing;
-                        device.IsVisibleToUsers = toggle.IsVisibleToUsers;
                     }
                 }
-                await _deviceRepository.UpdateAsync(device, cancellationToken);
+
+                if (hasChanged)
+                {
+                    await _deviceRepository.UpdateAsync(device, cancellationToken);
+                    updatedDevicesCount++;
+
+                    _logger.LogInformation(
+                        "Устройство {Address} обновлено администратором: Разрешен Пинг = {IsAllowed}, Видимость = {IsVisible}",
+                        device.Address.Value, device.IsAllowedToPing, device.IsVisibleToUsers);
+                }
             }
 
-            _logger.LogInformation("Глобальные параметры успешно сохранены. Обработано устройств: {Count}", allDevices.Count);
+            _logger.LogInformation(
+                "Глобальные параметры успешно применены. Общее число устройств в пуле: {TotalCount}. Фактически изменено: {UpdatedCount}",
+                allDevices.Count, updatedDevicesCount);
+
             return Unit.Value;
         }
     }

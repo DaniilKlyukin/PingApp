@@ -24,7 +24,7 @@ public static class GetAdminData
 
         public async Task<Response> Handle(Query request, CancellationToken cancellationToken)
         {
-            var allDevices = await _deviceRepository.GetAllDevicesAsync(cancellationToken);
+            var allDevices = await _deviceRepository.GetAllDevicesNoTrackingAsync(cancellationToken);
             var intervalStr = await _settingsRepository.GetSettingAsync("ScanIntervalSeconds", "10", cancellationToken);
             int.TryParse(intervalStr, out var interval);
 

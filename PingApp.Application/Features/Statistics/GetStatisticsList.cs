@@ -22,7 +22,7 @@ public static class GetStatisticsList
         public async Task<List<UserStatistics>> Handle(Query request, CancellationToken cancellationToken)
         {
             var userDevices = await _repository.GetUserDevicesAsync(_userContext.UserId, cancellationToken);
-            var allDevices = await _repository.GetAllDevicesAsync(cancellationToken);
+            var allDevices = await _repository.GetAllDevicesNoTrackingAsync(cancellationToken);
 
             return userDevices
                 .Join(

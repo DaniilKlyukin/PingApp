@@ -12,7 +12,9 @@ public interface IDeviceRepository
     Task<bool> ExistsSubscriptionAsync(UserId userId, DeviceAddress address, CancellationToken cancellationToken = default);
     Task AddSubscriptionAsync(UserId userId, Device device, DeviceNickname deviceNickname, CancellationToken cancellationToken = default);
     Task RemoveSubscriptionAsync(UserId userId, DeviceAddress address, CancellationToken cancellationToken = default);
+    Task<List<DeviceWithLastStatus>> GetUserDevicesWithLastStatusAsync(UserId userId, CancellationToken cancellationToken = default);
     Task<List<Device>> GetAllDevicesAsync(CancellationToken cancellationToken = default);
+    Task<List<Device>> GetAllDevicesNoTrackingAsync(CancellationToken cancellationToken = default);
     Task<List<Device>> GetAllowedDevicesAsync(CancellationToken cancellationToken = default);
     Task<List<Device>> GetAllTrackedDevicesAsync(CancellationToken cancellationToken = default);
     Task UpdateAsync(Device device, CancellationToken cancellationToken = default);
@@ -21,3 +23,10 @@ public interface IDeviceRepository
     Task<Device?> GetByAddressAsync(DeviceAddress address, CancellationToken cancellationToken = default);
     Task AddDeviceAsync(Device device, CancellationToken cancellationToken = default);
 }
+
+public record DeviceWithLastStatus(
+    string Address,
+    string? Nickname,
+    bool? LastAtWork,
+    DateTime? LastStatusTime
+);

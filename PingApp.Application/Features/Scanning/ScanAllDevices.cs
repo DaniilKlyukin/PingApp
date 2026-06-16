@@ -44,12 +44,14 @@ public static class ScanAllDevices
             {
                 var ipBytes = localIp.GetAddressBytes();
                 var baseSubnetIp = $"{ipBytes[0]}.{ipBytes[1]}.{ipBytes[2]}";
+
+                using var semaphore = new SemaphoreSlim(32);
                 var discoveryTasks = new List<Task<(string Ip, bool IsActive)>>();
 
                 for (int i = 1; i <= 254; i++)
                 {
                     var targetIp = $"{baseSubnetIp}.{i}";
-                    discoveryTasks.Add(_networkProvider.PingHostForDiscoveryAsync(targetIp, cancellationToken));
+                    discoveryTasks.Add(PingWithThrottleAsync(targetIp, semaphore, cancellationToken));
                 }
 
                 var results = await Task.WhenAll(discoveryTasks);
@@ -128,6 +130,22 @@ public static class ScanAllDevices
             }
 
             return Unit.Value;
+        }
+
+        private async Task<(string Ip, bool IsActive)> PingWithThrottleAsync(
+            string ip,
+            SemaphoreSlim semaphore,
+            CancellationToken cancellationToken)
+        {
+            await semaphore.WaitAsync(cancellationToken);
+            try
+            {
+                return await _networkProvider.PingHostForDiscoveryAsync(ip, cancellationToken);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
         }
 
         private record PingResult(Device Device, bool IsOnline, bool Success);

@@ -113,6 +113,14 @@ public class DeviceRepository : IDeviceRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Device>> GetAllDevicesNoTrackingAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Devices
+            .AsNoTracking()
+            .Include(d => d.Statuses)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Device>> GetAllowedDevicesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Devices
@@ -131,5 +139,34 @@ public class DeviceRepository : IDeviceRepository
     {
         _context.Devices.Add(device);
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<List<DeviceWithLastStatus>> GetUserDevicesWithLastStatusAsync(
+        UserId userId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .SelectMany(u => u.UserDevices)
+            .Join(
+                _context.Devices.AsNoTracking(),
+                ud => ud.DeviceId,
+                d => d.Id,
+                (ud, d) => new { UserDevice = ud, Device = d })
+            .Where(x => x.Device.IsVisibleToUsers && x.Device.IsAllowedToPing)
+            .Select(x => new DeviceWithLastStatus(
+                x.Device.Address.Value,
+                x.UserDevice.DeviceNickname == null ? null : x.UserDevice.DeviceNickname.Value,
+                x.Device.Statuses
+                    .OrderByDescending(s => s.DateTime)
+                    .Select(s => (bool?)s.AtWork)
+                    .FirstOrDefault(),
+                x.Device.Statuses
+                    .OrderByDescending(s => s.DateTime)
+                    .Select(s => (DateTime?)s.DateTime)
+                    .FirstOrDefault()
+            ))
+            .ToListAsync(cancellationToken);
     }
 }

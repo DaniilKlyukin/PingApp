@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PingApp.Application.Features.Users;
 using PingApp.Application.Interfaces;
@@ -14,6 +15,7 @@ public class RegisterHandlerTests
 {
     private readonly IUserRepository _userRepositoryMock;
     private readonly IPasswordHasher _passwordHasherMock;
+    private readonly ILogger<Register.Handler> _loggerMock;
     private readonly IConfiguration _configuration;
     private readonly Register.Handler _sut;
 
@@ -21,6 +23,7 @@ public class RegisterHandlerTests
     {
         _userRepositoryMock = Substitute.For<IUserRepository>();
         _passwordHasherMock = Substitute.For<IPasswordHasher>();
+        _loggerMock = Substitute.For<ILogger<Register.Handler>>();
 
         var inMemorySettings = new Dictionary<string, string> {
             {"AdminSettings:Username", "admin"}
@@ -29,7 +32,11 @@ public class RegisterHandlerTests
             .AddInMemoryCollection(inMemorySettings)
             .Build();
 
-        _sut = new Register.Handler(_userRepositoryMock, _passwordHasherMock, _configuration);
+        _sut = new Register.Handler(
+            _userRepositoryMock,
+            _passwordHasherMock,
+            _configuration,
+            _loggerMock);
     }
 
     [Fact]
@@ -94,7 +101,11 @@ public class RegisterHandlerTests
     public async Task Handle_ShouldUseDefaultAdminName_WhenConfigurationIsEmpty()
     {
         var emptyConfig = new ConfigurationBuilder().Build();
-        var handler = new Register.Handler(_userRepositoryMock, _passwordHasherMock, emptyConfig);
+        var handler = new Register.Handler(
+            _userRepositoryMock,
+            _passwordHasherMock,
+            emptyConfig,
+            _loggerMock);
         var command = new Register.Command("admin", "password123");
 
         var result = await handler.Handle(command, CancellationToken.None);

@@ -87,12 +87,33 @@ public static class ScanAllDevices
                 try
                 {
                     var isOnline = await _pingService.PingHostAsync(device.Address.Value, cancellationToken);
-                    var transition = device.AddStatus(DateTime.Now, isOnline);
+                    return new PingResult(device, isOnline, Success: true);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Ошибка при опросе устройства {Address}", device.Address.Value);
+                    return new PingResult(device, IsOnline: false, Success: false);
+                }
+            });
+
+            var resultsList = await Task.WhenAll(pingTasks);
+
+            foreach (var result in resultsList)
+            {
+                if (!result.Success) continue;
+
+                try
+                {
+                    var device = result.Device;
+                    var transition = device.AddStatus(DateTime.Now, result.IsOnline);
 
                     await _repository.UpdateAsync(device, cancellationToken);
 
                     if (transition != DeviceStatusTransition.None)
                     {
+                        _logger.LogInformation("Устройство {Address} изменило сетевой статус. Доступно: {IsOnline} (Событие: {Transition})",
+                            device.Address.Value, result.IsOnline, transition.ToString());
+
                         await _mediator.Publish(new DeviceStatusChanged.Notification(
                              device.Address.Value,
                              transition == DeviceStatusTransition.LoggedIn,
@@ -102,12 +123,13 @@ public static class ScanAllDevices
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Ошибка при опросе устройства {Address}", device.Address.Value);
+                    _logger.LogError(ex, "Ошибка при сохранении статуса устройства {Address} в базу данных", result.Device.Address.Value);
                 }
-            });
+            }
 
-            await Task.WhenAll(pingTasks);
             return Unit.Value;
-        }       
+        }
+
+        private record PingResult(Device Device, bool IsOnline, bool Success);
     }
 }

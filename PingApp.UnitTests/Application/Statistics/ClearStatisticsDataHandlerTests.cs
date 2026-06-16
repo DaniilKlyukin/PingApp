@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PingApp.Application.Features.Statistics;
 using PingApp.Application.Interfaces;
@@ -12,7 +13,11 @@ public class ClearStatisticsDataHandlerTests
     public async Task Handle_ShouldCallClearAllStatuses_AndReturnUnit()
     {
         var repositoryMock = Substitute.For<IDeviceRepository>();
-        var handler = new ClearStatisticsData.Handler(repositoryMock);
+        var loggerMock = Substitute.For<ILogger<ClearStatisticsData.Handler>>();
+
+        var handler = new ClearStatisticsData.Handler(
+            repositoryMock,
+            loggerMock);
 
         var result = await handler.Handle(new ClearStatisticsData.Command(), CancellationToken.None);
 

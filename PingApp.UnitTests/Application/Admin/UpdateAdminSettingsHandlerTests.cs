@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PingApp.Application.Features.Admin;
 using PingApp.Application.Interfaces;
@@ -12,13 +13,19 @@ public class UpdateAdminSettingsHandlerTests
 {
     private readonly IDeviceRepository _deviceRepositoryMock;
     private readonly IGlobalSettingsRepository _settingsRepositoryMock;
+    private readonly ILogger<UpdateAdminSettings.Handler> _loggerMock;
     private readonly UpdateAdminSettings.Handler _sut;
 
     public UpdateAdminSettingsHandlerTests()
     {
+        _loggerMock = Substitute.For<ILogger<UpdateAdminSettings.Handler>>();
         _deviceRepositoryMock = Substitute.For<IDeviceRepository>();
         _settingsRepositoryMock = Substitute.For<IGlobalSettingsRepository>();
-        _sut = new UpdateAdminSettings.Handler(_deviceRepositoryMock, _settingsRepositoryMock);
+
+        _sut = new UpdateAdminSettings.Handler(
+            _deviceRepositoryMock,
+            _settingsRepositoryMock,
+            _loggerMock);
     }
 
     [Fact]

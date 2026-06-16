@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PingApp.Application.Features.Devices;
 using PingApp.Application.Interfaces;
@@ -14,14 +15,19 @@ public class AddDeviceHandlerTests
 {
     private readonly IDeviceRepository _repositoryMock;
     private readonly IUserContext _userContextMock;
+    private readonly ILogger<AddDevice.Handler> _loggerMock;
     private readonly AddDevice.Handler _sut;
 
     public AddDeviceHandlerTests()
     {
         _repositoryMock = Substitute.For<IDeviceRepository>();
         _userContextMock = Substitute.For<IUserContext>();
+        _loggerMock = Substitute.For<ILogger<AddDevice.Handler>>();
 
-        _sut = new AddDevice.Handler(_repositoryMock, _userContextMock);
+        _sut = new AddDevice.Handler(
+            _repositoryMock,
+            _userContextMock,
+            _loggerMock);
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PingApp.Application.Features.Users;
 using PingApp.Application.Interfaces;
@@ -15,12 +16,14 @@ public class LoginHandlerTests
     private readonly IUserRepository _userRepositoryMock;
     private readonly IPasswordHasher _passwordHasherMock;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<Login.Handler> _loggerMock;
     private readonly Login.Handler _sut;
 
     public LoginHandlerTests()
     {
         _userRepositoryMock = Substitute.For<IUserRepository>();
         _passwordHasherMock = Substitute.For<IPasswordHasher>();
+        _loggerMock = Substitute.For<ILogger<Login.Handler>>();
 
         var inMemorySettings = new Dictionary<string, string> {
             {"AdminSettings:Username", "admin"},
@@ -30,7 +33,11 @@ public class LoginHandlerTests
             .AddInMemoryCollection(inMemorySettings)
             .Build();
 
-        _sut = new Login.Handler(_userRepositoryMock, _passwordHasherMock, _configuration);
+        _sut = new Login.Handler(
+            _userRepositoryMock,
+            _passwordHasherMock,
+            _configuration,
+            _loggerMock);
     }
 
     [Fact]
@@ -126,7 +133,11 @@ public class LoginHandlerTests
     public async Task Handle_ShouldUseDefaultAdminCredentials_WhenConfigurationIsEmpty()
     {
         var emptyConfig = new ConfigurationBuilder().Build();
-        var handler = new Login.Handler(_userRepositoryMock, _passwordHasherMock, emptyConfig);
+        var handler = new Login.Handler(
+            _userRepositoryMock,
+            _passwordHasherMock,
+            emptyConfig,
+            _loggerMock);
         var command = new Login.Command("admin", "admin");
 
         _userRepositoryMock.GetUserByUsernameAsync(Username.Create("admin").Value, Arg.Any<CancellationToken>())

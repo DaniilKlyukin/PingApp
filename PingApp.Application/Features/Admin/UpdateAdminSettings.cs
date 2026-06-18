@@ -25,15 +25,18 @@ public static class UpdateAdminSettings
     {
         private readonly IDeviceRepository _deviceRepository;
         private readonly IGlobalSettingsRepository _settingsRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<Handler> _logger;
 
         public Handler(
             IDeviceRepository deviceRepository,
             IGlobalSettingsRepository settingsRepository,
+            IUnitOfWork unitOfWork,
             ILogger<Handler> logger)
         {
             _deviceRepository = deviceRepository;
             _settingsRepository = settingsRepository;
+            _unitOfWork = unitOfWork;
             _logger = logger;
         }
 
@@ -91,17 +94,22 @@ public static class UpdateAdminSettings
 
                 if (hasChanged)
                 {
-                    await _deviceRepository.UpdateAsync(device, cancellationToken);
+                    _deviceRepository.Update(device);
                     updatedDevicesCount++;
 
                     _logger.LogInformation(
-                        "Устройство {Address} обновлено администратором: Разрешен Пинг = {IsAllowed}, Видимость = {IsVisible}",
+                        "Устройство {Address} подготовлено к обновлению: Разрешен Пинг = {IsAllowed}, Видимость = {IsVisible}",
                         device.Address.Value, device.IsAllowedToPing, device.IsVisibleToUsers);
                 }
             }
 
+            if (updatedDevicesCount > 0)
+            {
+                await _unitOfWork.SaveChangesAsync(cancellationToken);
+            }
+
             _logger.LogInformation(
-                "Глобальные параметры успешно применены. Общее число устройств в пуле: {TotalCount}. Фактически изменено: {UpdatedCount}",
+                "Глобальные параметры успешно применены. Общее число устройств: {TotalCount}. Фактически изменено: {UpdatedCount}",
                 allDevices.Count, updatedDevicesCount);
 
             return Unit.Value;

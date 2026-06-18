@@ -19,13 +19,15 @@ public interface IDeviceRepository
     Task<List<Device>> GetAllDevicesNoTrackingAsync(CancellationToken cancellationToken = default);
     Task<List<Device>> GetAllowedDevicesAsync(CancellationToken cancellationToken = default);
     Task<List<Device>> GetAllTrackedDevicesAsync(CancellationToken cancellationToken = default);
-    Task UpdateAsync(Device device, CancellationToken cancellationToken = default);
     Task ClearAllStatusesAsync(CancellationToken cancellationToken = default);
     Task<Device?> GetByAddressAsync(DeviceAddress address, CancellationToken cancellationToken = default);
     Task AddDeviceAsync(Device device, CancellationToken cancellationToken = default);
     Task AddDevicesRangeAsync(IEnumerable<Device> devices, CancellationToken cancellationToken = default);
     Task AddStatusRecordAsync(StatusRecord record, CancellationToken cancellationToken = default);
     Task<List<StatusRecord>> GetStatusHistoryAsync(List<DeviceId> deviceIds, CancellationToken cancellationToken = default);
+    
+    Task UpdateAsync(Device device, CancellationToken cancellationToken = default);
+    void Update(Device device);
 }
 
 public record DeviceWithLastStatus(

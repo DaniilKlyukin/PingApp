@@ -24,8 +24,9 @@ public static class DependencyInjection
 
         services.AddSingleton<IScanConfiguration, ScanConfiguration>();
         services.AddSingleton<IUiEventBridge, UiEventBridge>();
-        services.AddSingleton<IUserContext, UserContext>();
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
+
+        services.AddScoped<IUserContext, UserContext>();
 
         return services;
     }

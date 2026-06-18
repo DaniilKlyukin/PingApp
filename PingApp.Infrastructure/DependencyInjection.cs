@@ -17,6 +17,8 @@ public static class DependencyInjection
         services.AddDbContext<PingDbContext>(options =>
             options.UseNpgsql(connectionString), ServiceLifetime.Scoped);
 
+        services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<PingDbContext>());
+
         services.AddScoped<IDeviceRepository, DeviceRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IGlobalSettingsRepository, GlobalSettingsRepository>();

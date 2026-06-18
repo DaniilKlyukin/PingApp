@@ -13,6 +13,7 @@ public class UpdateAdminSettingsHandlerTests
 {
     private readonly IDeviceRepository _deviceRepositoryMock;
     private readonly IGlobalSettingsRepository _settingsRepositoryMock;
+    private readonly IUnitOfWork _unitOfWorkMock;
     private readonly ILogger<UpdateAdminSettings.Handler> _loggerMock;
     private readonly UpdateAdminSettings.Handler _sut;
 
@@ -21,10 +22,15 @@ public class UpdateAdminSettingsHandlerTests
         _loggerMock = Substitute.For<ILogger<UpdateAdminSettings.Handler>>();
         _deviceRepositoryMock = Substitute.For<IDeviceRepository>();
         _settingsRepositoryMock = Substitute.For<IGlobalSettingsRepository>();
+        _unitOfWorkMock = Substitute.For<IUnitOfWork>();
+
+        _unitOfWorkMock.SaveChangesAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(1));
 
         _sut = new UpdateAdminSettings.Handler(
             _deviceRepositoryMock,
             _settingsRepositoryMock,
+            _unitOfWorkMock,
             _loggerMock);
     }
 
@@ -57,8 +63,9 @@ public class UpdateAdminSettingsHandlerTests
         device2.IsAllowedToPing.Should().BeTrue();
         device2.IsVisibleToUsers.Should().BeTrue();
 
-        await _deviceRepositoryMock.Received(1).UpdateAsync(device1, Arg.Any<CancellationToken>());
-        await _deviceRepositoryMock.Received(1).UpdateAsync(device2, Arg.Any<CancellationToken>());
+        _deviceRepositoryMock.Received(1).Update(device1);
+        _deviceRepositoryMock.DidNotReceive().Update(device2);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -81,7 +88,9 @@ public class UpdateAdminSettingsHandlerTests
         device1.IsAllowedToPing.Should().BeFalse();
         device2.IsAllowedToPing.Should().BeFalse();
 
-        await _deviceRepositoryMock.Received(2).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+        _deviceRepositoryMock.Received(1).Update(device1);
+        _deviceRepositoryMock.Received(1).Update(device2);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -104,6 +113,8 @@ public class UpdateAdminSettingsHandlerTests
         device1.IsVisibleToUsers.Should().BeTrue();
         device2.IsVisibleToUsers.Should().BeTrue();
 
-        await _deviceRepositoryMock.Received(2).UpdateAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+        _deviceRepositoryMock.Received(1).Update(device1);
+        _deviceRepositoryMock.Received(1).Update(device2);
+        await _unitOfWorkMock.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

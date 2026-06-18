@@ -57,9 +57,7 @@ public class DeviceRepository : IDeviceRepository
         {
             existingDevice = device;
             _context.Devices.Add(existingDevice);
-            await _context.SaveChangesAsync(cancellationToken);
         }
-
         user.AddSubscription(existingDevice.Id, nickname);
         await _context.SaveChangesAsync(cancellationToken);
     }
@@ -179,5 +177,10 @@ public class DeviceRepository : IDeviceRepository
             .Where(s => deviceIds.Contains(s.DeviceId))
             .OrderBy(s => s.DateTime)
             .ToListAsync(cancellationToken);
+    }
+
+    public void Update(Device device)
+    {
+        _context.Devices.Update(device);
     }
 }

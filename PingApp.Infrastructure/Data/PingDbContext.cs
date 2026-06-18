@@ -1,11 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PingApp.Application.Interfaces;
 using PingApp.Domain.Aggregates.DeviceAggregate;
 using PingApp.Domain.Aggregates.SettingsAggregate;
 using PingApp.Domain.Aggregates.UserAggregate;
 
 namespace PingApp.Infrastructure.Data;
 
-public class PingDbContext : DbContext
+public class PingDbContext : DbContext, IUnitOfWork
 {
     public DbSet<Device> Devices => Set<Device>();
     public DbSet<User> Users => Set<User>();

@@ -22,6 +22,10 @@ public class GetStatisticsListHandlerTests
     {
         _repositoryMock = Substitute.For<IDeviceRepository>();
         _userContextMock = Substitute.For<IUserContext>();
+
+        _repositoryMock.GetStatusHistoryAsync(Arg.Any<List<DeviceId>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<StatusRecord>());
+
         _sut = new GetStatisticsList.Handler(_repositoryMock, _userContextMock);
     }
 
@@ -87,7 +91,7 @@ public class GetStatisticsListHandlerTests
         _repositoryMock.GetUserDevicesAsync(userId, Arg.Any<CancellationToken>())
             .Returns(new List<UserDevice> { userDeviceHidden, userDeviceForbidden, userDeviceValid });
 
-        _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
+        _repositoryMock.GetAllDevicesNoTrackingAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device> { hiddenDevice, forbiddenDevice, validDevice });
 
         var result = await _sut.Handle(new GetStatisticsList.Query(), TestContext.Current.CancellationToken);
@@ -106,7 +110,7 @@ public class GetStatisticsListHandlerTests
         _repositoryMock.GetUserDevicesAsync(userId, Arg.Any<CancellationToken>())
             .Returns(new List<UserDevice>());
 
-        _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
+        _repositoryMock.GetAllDevicesNoTrackingAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device>());
 
         var result = await _sut.Handle(new GetStatisticsList.Query(), TestContext.Current.CancellationToken);

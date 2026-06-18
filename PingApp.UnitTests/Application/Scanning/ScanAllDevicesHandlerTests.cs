@@ -16,7 +16,7 @@ public class ScanAllDevicesHandlerTests
 {
     private readonly IDeviceRepository _repositoryMock;
     private readonly IPingService _pingServiceMock;
-    private readonly ILocalNetworkProvider _networkProviderMock;
+    private readonly FakeLocalNetworkProvider _networkProviderFake;
     private readonly IMediator _mediatorMock;
     private readonly ILogger<ScanAllDevices.Handler> _loggerMock;
     private readonly IConfiguration _configurationMock;
@@ -26,7 +26,7 @@ public class ScanAllDevicesHandlerTests
     {
         _repositoryMock = Substitute.For<IDeviceRepository>();
         _pingServiceMock = Substitute.For<IPingService>();
-        _networkProviderMock = Substitute.For<ILocalNetworkProvider>();
+        _networkProviderFake = new FakeLocalNetworkProvider();
         _mediatorMock = Substitute.For<IMediator>();
         _loggerMock = Substitute.For<ILogger<ScanAllDevices.Handler>>();
         _configurationMock = Substitute.For<IConfiguration>();
@@ -34,7 +34,7 @@ public class ScanAllDevicesHandlerTests
         _sut = new ScanAllDevices.Handler(
             _repositoryMock,
             _pingServiceMock,
-            _networkProviderMock,
+            _networkProviderFake,
             _mediatorMock,
             _configurationMock,
             _loggerMock);
@@ -43,7 +43,6 @@ public class ScanAllDevicesHandlerTests
     [Fact]
     public async Task Handle_ShouldUpdateStatusAndPublishNotification_WhenDeviceStatusChangesToOnline()
     {
-        // Arrange
         var ip = "192.168.1.100";
         var device = Device.Create(DeviceAddress.Create(ip).Value, isAllowedToPing: true, isVisibleToUsers: true);
 
@@ -53,10 +52,8 @@ public class ScanAllDevicesHandlerTests
         _pingServiceMock.PingHostAsync(ip, Arg.Any<CancellationToken>())
             .Returns(true);
 
-        // Act
         await _sut.Handle(new ScanAllDevices.Command(), TestContext.Current.CancellationToken);
 
-        // Assert
         device.LastKnownStatus.Should().BeTrue();
 
         await _repositoryMock.Received(1).UpdateAsync(device, Arg.Any<CancellationToken>());
@@ -100,47 +97,56 @@ public class ScanAllDevicesHandlerTests
     [Fact]
     public async Task Handle_ShouldDiscoverNewDevicesAndSaveThem_WhenLocalIpIsFound()
     {
-        var localIp = IPAddress.Parse("192.168.1.5");
-        _networkProviderMock.GetLocalIpAddress().Returns(localIp);
-
-        _networkProviderMock.PingHostForDiscoveryAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(callInfo =>
-            {
-                var ip = callInfo.Arg<string>();
-                return Task.FromResult((ip, ip == "192.168.1.10"));
-            });
-
-        _repositoryMock.GetByAddressAsync(Arg.Is<DeviceAddress>(a => a.Value == "192.168.1.10"), Arg.Any<CancellationToken>())
-            .Returns((Device?)null);
+        _networkProviderFake.LocalIpAddress = IPAddress.Parse("192.168.1.5");
+        _networkProviderFake.ActiveIpChecker = ip => ip == "192.168.1.10";
 
         _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device>());
 
         await _sut.Handle(new ScanAllDevices.Command(), TestContext.Current.CancellationToken);
 
-        await _repositoryMock.Received(1).AddDeviceAsync(
-            Arg.Is<Device>(d => d.Address.Value == "192.168.1.10" && !d.IsVisibleToUsers && d.IsAllowedToPing),
+        await _repositoryMock.Received(1).AddDevicesRangeAsync(
+            Arg.Is<IEnumerable<Device>>(devices =>
+                devices.Count() == 1 &&
+                devices.First().Address.Value == "192.168.1.10" &&
+                !devices.First().IsVisibleToUsers &&
+                devices.First().IsAllowedToPing),
             Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task Handle_ShouldNotAddDevice_WhenAlreadyExistsInDatabase()
     {
-        var localIp = IPAddress.Parse("192.168.1.5");
-        _networkProviderMock.GetLocalIpAddress().Returns(localIp);
-
-        _networkProviderMock.PingHostForDiscoveryAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(callInfo => (callInfo.Arg<string>(), callInfo.Arg<string>() == "192.168.1.10"));
+        _networkProviderFake.LocalIpAddress = IPAddress.Parse("192.168.1.5");
+        _networkProviderFake.ActiveIpChecker = ip => ip == "192.168.1.10";
 
         var existingDevice = Device.Create(DeviceAddress.Create("192.168.1.10").Value);
-        _repositoryMock.GetByAddressAsync(existingDevice.Address, Arg.Any<CancellationToken>())
-            .Returns(existingDevice);
 
         _repositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
             .Returns(new List<Device> { existingDevice });
 
         await _sut.Handle(new ScanAllDevices.Command(), TestContext.Current.CancellationToken);
 
-        await _repositoryMock.DidNotReceive().AddDeviceAsync(Arg.Any<Device>(), Arg.Any<CancellationToken>());
+        await _repositoryMock.DidNotReceive().AddDevicesRangeAsync(
+            Arg.Any<IEnumerable<Device>>(),
+            Arg.Any<CancellationToken>());
     }
+
+    #region Потокобезопасный ручной Stub для сетевого провайдера
+
+    private class FakeLocalNetworkProvider : ILocalNetworkProvider
+    {
+        public IPAddress? LocalIpAddress { get; set; }
+        public Func<string, bool>? ActiveIpChecker { get; set; }
+
+        public IPAddress? GetLocalIpAddress() => LocalIpAddress;
+
+        public Task<(string Ip, bool IsActive)> PingHostForDiscoveryAsync(string ip, CancellationToken cancellationToken)
+        {
+            var isActive = ActiveIpChecker?.Invoke(ip) ?? false;
+            return Task.FromResult((ip, isActive));
+        }
+    }
+
+    #endregion
 }

@@ -31,7 +31,7 @@ public class GetAdminDataHandlerTests
             Device.Create(DeviceAddress.Create("192.168.1.2").Value, isAllowedToPing: false, isVisibleToUsers: true)
         };
 
-        _deviceRepositoryMock.GetAllDevicesAsync(Arg.Any<CancellationToken>())
+        _deviceRepositoryMock.GetAllDevicesNoTrackingAsync(Arg.Any<CancellationToken>())
             .Returns(devices);
 
         _settingsRepositoryMock.GetSettingAsync("ScanIntervalSeconds", "10", Arg.Any<CancellationToken>())

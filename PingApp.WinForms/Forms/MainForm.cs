@@ -55,6 +55,11 @@ public partial class MainForm : Form
                 StatusString = d.StatusString
             }).ToList();
 
+            if (IsDisposed || Disposing)
+            {
+                return;
+            }
+
             _bindingSource.DataSource = gridItems;
             dataGridView.DataSource = _bindingSource;
         }

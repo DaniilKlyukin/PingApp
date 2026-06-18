@@ -10,7 +10,10 @@ using PingApp.Application;
 using PingApp.Application.Features.Scanning.Common;
 using PingApp.Application.Features.Users;
 using PingApp.Application.Interfaces;
+using PingApp.Domain.Aggregates.UserAggregate;
 using PingApp.Domain.Aggregates.UserAggregate.Common;
+using PingApp.Domain.Aggregates.UserAggregate.ValueObjects;
+using PingApp.Domain.Interfaces;
 using PingApp.Infrastructure;
 using PingApp.Infrastructure.Data;
 using Serilog;
@@ -18,7 +21,7 @@ using Serilog.Exceptions;
 
 namespace PingApp.WinForms;
 
-internal static class Program
+public class Program
 {
     [STAThread]
     static async Task Main(string[] args)
@@ -126,7 +129,7 @@ internal static class Program
     }
 
     /// <summary>
-    /// Первичная настройка интервала сканирования.
+    /// Первичная настройка интервала сканирования и инициализация администратора.
     /// </summary>
     private static async Task ConfigureDatabaseAsync(IHost host)
     {
@@ -151,6 +154,63 @@ internal static class Program
             var scanConfig = scope.ServiceProvider.GetRequiredService<IScanConfiguration>();
             scanConfig.Interval = TimeSpan.FromSeconds(intervalSeconds);
         }
+
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var userRepository = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+        var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+        var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("Program");
+
+        await SeedAdminUserAsync(configuration, userRepository, passwordHasher, logger);
+    }
+
+    /// <summary>
+    /// Безопасное создание учетной записи администратора на основе конфигурации.
+    /// </summary>
+    private static async Task SeedAdminUserAsync(
+        IConfiguration configuration,
+        IUserRepository userRepository,
+        IPasswordHasher passwordHasher,
+        Microsoft.Extensions.Logging.ILogger logger)
+    {
+        var adminUsernameRaw = configuration["AdminSettings:Username"];
+        var adminPasswordRaw = configuration["AdminSettings:Password"];
+
+        if (string.IsNullOrWhiteSpace(adminUsernameRaw) || string.IsNullOrWhiteSpace(adminPasswordRaw))
+        {
+            logger.LogWarning("Настройки AdminSettings:Username или AdminSettings:Password не заданы. Пропуск инициализации администратора.");
+            return;
+        }
+
+        var usernameResult = Username.Create(adminUsernameRaw);
+        var passwordResult = Password.Create(adminPasswordRaw);
+
+        if (usernameResult.IsFailure || passwordResult.IsFailure)
+        {
+            logger.LogError("Не удалось инициализировать администратора: имя пользователя или пароль не соответствуют правилам валидации.");
+            return;
+        }
+
+        var adminUsername = usernameResult.Value;
+        var existingUser = await userRepository.GetUserByUsernameAsync(adminUsername);
+
+        if (existingUser == null)
+        {
+            var adminUser = User.Create(adminUsername, isGuest: false, isAdmin: true);
+            adminUser.SetPassword(passwordResult.Value, passwordHasher);
+
+            await userRepository.AddUserAsync(adminUser);
+            logger.LogInformation("Учетная запись администратора успешно создана в базе данных (User: {Username}).", adminUsername.Value);
+        }
+        else
+        {
+            if (!existingUser.IsAdmin)
+            {
+                existingUser.IsAdmin = true;
+                await userRepository.UpdateUserAsync(existingUser);
+                logger.LogInformation("Существующему пользователю {Username} повышены права до администратора.", adminUsername.Value);
+            }
+        }
     }
 
     /// <summary>
@@ -159,9 +219,9 @@ internal static class Program
     private static async Task RunApplicationLoopAsync(IHost host)
     {
         var cts = new CancellationTokenSource();
-        _ = host.StartAsync(cts.Token); // Запуск фоновых служб в фоне
+        _ = host.StartAsync(cts.Token);
 
-        bool keepRunning = true;
+        var keepRunning = true;
 
         while (keepRunning)
         {
@@ -173,7 +233,7 @@ internal static class Program
                 var mainForm = scope.ServiceProvider.GetRequiredService<MainForm>();
                 System.Windows.Forms.Application.Run(mainForm);
 
-                var userContext = host.Services.GetRequiredService<IUserContext>();
+                var userContext = scope.ServiceProvider.GetRequiredService<IUserContext>();
 
                 if (userContext.IsGuest && userContext.UserId != UserId.Empty)
                 {

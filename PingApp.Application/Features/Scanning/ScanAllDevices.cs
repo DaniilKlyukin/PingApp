@@ -6,6 +6,7 @@ using PingApp.Domain.Aggregates.DeviceAggregate;
 using PingApp.Domain.Aggregates.DeviceAggregate.Entities;
 using PingApp.Domain.Aggregates.DeviceAggregate.Enums;
 using PingApp.Domain.Aggregates.DeviceAggregate.ValueObjects;
+using System.Collections.Concurrent;
 
 namespace PingApp.Application.Features.Scanning;
 
@@ -158,21 +159,24 @@ public static class ScanAllDevices
 
             _logger.LogInformation("Пингуем разрешенные устройства (активных к опросу: {Count} из {Total})", devicesToPing.Count, allDevices.Count);
 
-            var pingTasks = devicesToPing.Select(async device =>
+            var resultsList = new ConcurrentBag<PingResult>();
+            await Parallel.ForEachAsync(devicesToPing, new ParallelOptions
+            {
+                MaxDegreeOfParallelism = MaxParallelPings,
+                CancellationToken = cancellationToken
+            },
+            async (device, ct) =>
             {
                 try
                 {
-                    var isOnline = await _pingService.PingHostAsync(device.Address.Value, cancellationToken);
-                    return new PingResult(device, isOnline, Success: true);
+                    var isOnline = await _pingService.PingHostAsync(device.Address.Value, ct);
+                    resultsList.Add(new PingResult(device, isOnline, true));
                 }
-                catch (Exception ex)
+                catch
                 {
-                    _logger.LogError(ex, "Ошибка при опросе устройства {Address}", device.Address.Value);
-                    return new PingResult(device, IsOnline: false, Success: false);
+                    resultsList.Add(new PingResult(device, false, false));
                 }
             });
-
-            var resultsList = await Task.WhenAll(pingTasks);
 
             foreach (var result in resultsList)
             {

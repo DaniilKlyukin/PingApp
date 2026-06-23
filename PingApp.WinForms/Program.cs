@@ -48,9 +48,6 @@ public class Program
         }
     }
 
-    /// <summary>
-    /// Инициализация базового логгера и самодиагностики Serilog.
-    /// </summary>
     private static void InitializeBootstrapLogger()
     {
         Directory.CreateDirectory("logs");
@@ -63,9 +60,6 @@ public class Program
             .CreateLogger();
     }
 
-    /// <summary>
-    /// Построение и конфигурация IoC-контейнера и хоста приложения.
-    /// </summary>
     private static IHost BuildHost(string[] args)
     {
         return Host.CreateDefaultBuilder(args)
@@ -74,9 +68,6 @@ public class Program
             .Build();
     }
 
-    /// <summary>
-    /// Регистрация сервисов в DI-контейнере.
-    /// </summary>
     private static void ConfigureServices(IServiceCollection services)
     {
         services.AddLogging(loggingBuilder =>
@@ -92,10 +83,7 @@ public class Program
                 .Build();
 
         var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? "Host=localhost;Database=pingapp_db;Username=postgres;Password=your_password";
-
-        services.AddDbContext<PingDbContext>(options =>
-                options.UseNpgsql(connectionString), ServiceLifetime.Transient);
+            ?? throw new InvalidOperationException("Критическая ошибка: Строка подключения 'DefaultConnection' отсутствует в конфигурации.");
 
         services.AddApplication();
         services.AddInfrastructure(connectionString);
@@ -107,9 +95,6 @@ public class Program
         services.AddTransient<AdminForm>();
     }
 
-    /// <summary>
-    /// Настройка логирования в файлы и Elasticsearch.
-    /// </summary>
     private static void ConfigureSerilog(IConfiguration configuration, LoggerConfiguration loggerConfiguration)
     {
         var elasticUri = configuration["ElasticConfiguration:Uri"] ?? "http://localhost:9200";
@@ -128,9 +113,6 @@ public class Program
             });
     }
 
-    /// <summary>
-    /// Первичная настройка интервала сканирования и инициализация администратора.
-    /// </summary>
     private static async Task ConfigureDatabaseAsync(IHost host)
     {
         using var scope = host.Services.CreateScope();
@@ -164,9 +146,6 @@ public class Program
         await SeedAdminUserAsync(configuration, userRepository, passwordHasher, logger);
     }
 
-    /// <summary>
-    /// Безопасное создание учетной записи администратора на основе конфигурации.
-    /// </summary>
     private static async Task SeedAdminUserAsync(
         IConfiguration configuration,
         IUserRepository userRepository,
@@ -213,9 +192,6 @@ public class Program
         }
     }
 
-    /// <summary>
-    /// Главный жизненный цикл приложения (авторизация, сессии, смена пользователей).
-    /// </summary>
     private static async Task RunApplicationLoopAsync(IHost host)
     {
         var cts = new CancellationTokenSource();
@@ -261,9 +237,6 @@ public class Program
         await host.StopAsync();
     }
 
-    /// <summary>
-    /// Очистка сессии текущего пользователя.
-    /// </summary>
     private static void ResetUserContext(IUserContext userContext)
     {
         userContext.UserId = UserId.Empty;

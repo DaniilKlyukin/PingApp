@@ -48,7 +48,7 @@ public class Program
                 .ConfigureServices((hostContext, services) =>
                 {
                     string connectionString = hostContext.Configuration.GetConnectionString("DefaultConnection")
-                        ?? "Host=pingapp_db;Database=pingapp_db;Username=postgres;Password=your_password";
+                        ?? throw new InvalidOperationException("Критическая ошибка: Строка подключения 'DefaultConnection' отсутствует в конфигурации.");
 
                     services.AddApplication();
                     services.AddInfrastructure(connectionString);
@@ -80,9 +80,6 @@ public class Program
         }
     }
 
-    /// <summary>
-    /// Инициализация учетной записи администратора в БД, если она отсутствует.
-    /// </summary>
     private static async Task SeedAdminUserAsync(IServiceProvider serviceProvider)
     {
         var configuration = serviceProvider.GetRequiredService<IConfiguration>();

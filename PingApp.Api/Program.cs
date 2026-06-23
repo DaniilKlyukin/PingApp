@@ -7,7 +7,7 @@ using PingApp.Infrastructure.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? "Host=localhost;Database=pingapp_db;Username=postgres;Password=your_password";
+    ?? throw new InvalidOperationException("Критическая ошибка: Строка подключения 'DefaultConnection' не настроена в конфигурации среды.");
 
 builder.Services.AddControllers();
 

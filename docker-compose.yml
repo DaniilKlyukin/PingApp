@@ -6,17 +6,17 @@ services:
     container_name: pingapp-db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: your_password
-      POSTGRES_DB: pingapp_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - pingapp-pgdata:/var/lib/postgresql/data
     networks:
       - pingapp-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -25,6 +25,9 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: pingapp-rabbitmq
     restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     ports:
       - "5672:5672"
       - "15672:15672"
@@ -46,9 +49,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - ConnectionStrings__DefaultConnection=Host=pingapp_db;Database=pingapp_db;Username=postgres;Password=your_password
+      - ConnectionStrings__DefaultConnection=Host=pingapp_db;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
       - RabbitMq__Uri=rabbitmq://rabbitmq
-      - ApiSettings__TelegramBotApiKey=default_secure_key_here
+      - RabbitMq__Username=${RABBITMQ_USER}
+      - RabbitMq__Password=${RABBITMQ_PASSWORD}
+      - ApiSettings__TelegramBotApiKey=${INTERNAL_API_KEY}
     networks:
       - pingapp-net
     depends_on:
@@ -65,9 +70,11 @@ services:
     container_name: pingapp-worker-service
     restart: always
     environment:
-      - ConnectionStrings__DefaultConnection=Host=pingapp_db;Database=pingapp_db;Username=postgres;Password=your_password
+      - ConnectionStrings__DefaultConnection=Host=pingapp_db;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
       - ElasticConfiguration__Uri=http://elasticsearch:9200
       - RabbitMq__Uri=rabbitmq://rabbitmq
+      - RabbitMq__Username=${RABBITMQ_USER}
+      - RabbitMq__Password=${RABBITMQ_PASSWORD}
     networks:
       - pingapp-net
     depends_on:
@@ -78,13 +85,33 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  telegram-bot:
+    image: pingapp-telegram-bot:latest
+    build:
+      context: .
+      dockerfile: telegram_bot/Dockerfile
+    container_name: pingapp-telegram-bot-service
+    restart: always
+    environment:
+      - BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - RABBITMQ_URI=amqp://${RABBITMQ_USER}:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      - CSHARP_API_URL=http://pingapp-api:8080/api
+      - API_KEY=${INTERNAL_API_KEY}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      pingapp-api:
+        condition: service_started
+    networks:
+      - pingapp-net
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pingapp-pgadmin
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD}
     ports:
       - "5050:80"
     networks:

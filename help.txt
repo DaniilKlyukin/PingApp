@@ -1,0 +1,5 @@
+тип:=.cs имя:~!"test"путь:~!"migrations"  путь:~!"obj"
+
+dotnet ef migrations add MigName --project PingApp.Infrastructure --startup-project PingApp.Api --context PingDbContext --output-dir Data/Migrations
+
+dotnet ef database update --project PingApp.Infrastructure --startup-project PingApp.Api --context PingDbContext

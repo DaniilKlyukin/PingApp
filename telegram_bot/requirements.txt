@@ -1,0 +1,4 @@
+aiogram~=3.29.0
+aio-pika~=9.6.2
+httpx~=0.28.1
+pydantic-settings~=2.13.1

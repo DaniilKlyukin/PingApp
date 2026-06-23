@@ -1,3 +1,11 @@
+# Секреты и файлы окружения
+.env
+.env.production
+.env.local
+
+# Конфигурации разработчика
+appsettings.Development.json
+appsettings.local.json
 ```csharp
 # Build results
 [Dd]ebug/

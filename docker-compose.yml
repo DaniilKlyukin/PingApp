@@ -21,6 +21,63 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: pingapp-rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - pingapp-net
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pingapp-api:
+    image: pingapp-api:latest
+    build:
+      context: .
+      dockerfile: PingApp.Api/Dockerfile
+    container_name: pingapp-api-service
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=pingapp_db;Database=pingapp_db;Username=postgres;Password=your_password
+      - RabbitMq__Uri=rabbitmq://rabbitmq
+      - ApiSettings__TelegramBotApiKey=default_secure_key_here
+    networks:
+      - pingapp-net
+    depends_on:
+      pingapp_db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  backend-worker:
+    image: pingapp-backend-worker:latest
+    build:
+      context: .
+      dockerfile: PingApp.Worker/Dockerfile
+    container_name: pingapp-worker-service
+    restart: always
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=pingapp_db;Database=pingapp_db;Username=postgres;Password=your_password
+      - ElasticConfiguration__Uri=http://elasticsearch:9200
+      - RabbitMq__Uri=rabbitmq://rabbitmq
+    networks:
+      - pingapp-net
+    depends_on:
+      pingapp_db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pingapp-pgadmin
@@ -124,24 +181,6 @@ services:
       - prometheus
     networks:
       - pingapp-net
-
-  backend-worker:
-    image: pingapp-backend-worker:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: pingapp-worker-service
-    restart: always
-    environment:
-      - ConnectionStrings__DefaultConnection=Host=pingapp_db;Database=pingapp_db;Username=postgres;Password=your_password
-      - ElasticConfiguration__Uri=http://elasticsearch:9200
-    networks:
-      - pingapp-net
-    depends_on:
-      pingapp_db:
-        condition: service_healthy
-      elasticsearch:
-        condition: service_started
 
 networks:
   pingapp-net:

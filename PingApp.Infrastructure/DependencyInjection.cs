@@ -22,7 +22,8 @@ public static class DependencyInjection
         services.AddScoped<IDeviceRepository, DeviceRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IGlobalSettingsRepository, GlobalSettingsRepository>();
-        
+        services.AddScoped<ITelegramSubscriptionRepository, TelegramSubscriptionRepository>();
+
         services.AddScoped<ILocalNetworkProvider, LocalNetworkProvider>();
         services.AddSingleton<IPingService, PingService>();
 

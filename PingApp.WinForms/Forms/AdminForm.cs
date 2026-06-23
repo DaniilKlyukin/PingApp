@@ -15,6 +15,16 @@ public partial class AdminForm : Form
         _mediator = mediator;
         _scanConfig = scanConfig;
         InitializeComponent();
+
+        dataGridView.CurrentCellDirtyStateChanged += DataGridView_CurrentCellDirtyStateChanged;
+    }
+
+    private void DataGridView_CurrentCellDirtyStateChanged(object? sender, EventArgs e)
+    {
+        if (dataGridView.IsCurrentCellDirty)
+        {
+            dataGridView.CommitEdit(DataGridViewDataErrorContexts.Commit);
+        }
     }
 
     private async void AdminForm_Load(object sender, EventArgs e)
@@ -37,6 +47,8 @@ public partial class AdminForm : Form
 
     private async void saveButton_Click(object sender, EventArgs e)
     {
+        dataGridView.EndEdit();
+
         var toggles = new List<UpdateAdminSettings.DeviceToggleDto>();
 
         foreach (DataGridViewRow row in dataGridView.Rows)

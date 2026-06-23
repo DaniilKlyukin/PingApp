@@ -1,1 +1,0 @@
-тип:=.cs имя:~!"test" имя:~!"designer" путь:~!"migrations"  путь:~!"obj"

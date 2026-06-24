@@ -45,4 +45,30 @@ public class TelegramSubscriptionRepository : ITelegramSubscriptionRepository
             .Select(s => s.ChatId)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<TelegramSubscription>> GetSubscriptionsByAddressAsync(string deviceAddress, CancellationToken cancellationToken = default)
+    {
+        return await _context.TelegramSubscriptions
+            .Where(s => s.DeviceAddress == deviceAddress)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<List<TelegramSubscription>> GetSubscriptionsByChatIdAsync(long chatId, CancellationToken cancellationToken = default)
+    {
+        return await _context.TelegramSubscriptions
+            .Where(s => s.ChatId == chatId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<TelegramSubscription?> GetSubscriptionAsync(long chatId, string deviceAddress, CancellationToken cancellationToken = default)
+    {
+        return await _context.TelegramSubscriptions
+            .FirstOrDefaultAsync(s => s.ChatId == chatId && s.DeviceAddress == deviceAddress, cancellationToken);
+    }
+
+    public async Task UpdateAsync(TelegramSubscription subscription, CancellationToken cancellationToken = default)
+    {
+        _context.TelegramSubscriptions.Update(subscription);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
 }

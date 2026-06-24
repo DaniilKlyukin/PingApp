@@ -3,6 +3,6 @@
 public record DeviceStatusChangedIntegrationEvent(
     string Address,
     bool IsOnline,
-    List<long> TargetChatIds,
+    Dictionary<long, string?> TargetChatIdsWithNicknames,
     DateTime Timestamp
 );

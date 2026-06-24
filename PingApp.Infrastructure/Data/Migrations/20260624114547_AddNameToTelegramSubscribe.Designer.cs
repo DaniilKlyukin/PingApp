@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PingApp.Infrastructure.Data;
@@ -11,9 +12,11 @@ using PingApp.Infrastructure.Data;
 namespace PingApp.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(PingDbContext))]
-    partial class PingDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260624114547_AddNameToTelegramSubscribe")]
+    partial class AddNameToTelegramSubscribe
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

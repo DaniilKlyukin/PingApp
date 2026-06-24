@@ -31,15 +31,22 @@ async def process_message(message: aio_pika.IncomingMessage, bot: Bot):
             payload = json.loads(message.body.decode())
             address = payload.get("Address")
             is_online = payload.get("IsOnline")
-            target_chat_ids = payload.get("TargetChatIds", [])
+            target_chat_ids_with_nicknames = payload.get("TargetChatIdsWithNicknames", {})
 
-            if not address or not target_chat_ids:
+            if not address or not target_chat_ids_with_nicknames:
                 return
 
             status_text = "В СЕТИ 🟢" if is_online else "ВНЕ СЕТИ 🔴"
-            text = f"📢 *Изменение статуса!*\n\nУстройство `{address}` теперь *{status_text}*."
 
-            tasks = [send_notification_safe(bot, chat_id, text) for chat_id in target_chat_ids]
+            tasks = []
+            for chat_id_str, nickname in target_chat_ids_with_nicknames.items():
+                chat_id = int(chat_id_str)
+                if nickname:
+                    text = f"📢 *Изменение статуса!*\n\nУстройство *{nickname}* (`{address}`) теперь *{status_text}*."
+                else:
+                    text = f"📢 *Изменение статуса!*\n\nУстройство `{address}` теперь *{status_text}*."
+                tasks.append(send_notification_safe(bot, chat_id, text))
+
             await asyncio.gather(*tasks)
 
         except Exception as e:

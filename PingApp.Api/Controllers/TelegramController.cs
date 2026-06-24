@@ -26,4 +26,11 @@ public class TelegramController : ApiControllerBase
         }
         return Ok();
     }
+
+    [HttpGet("subscriptions/{chatId}")]
+    public async Task<ActionResult<List<GetTelegramSubscriptions.SubscriptionDto>>> GetSubscriptions(long chatId, CancellationToken cancellationToken)
+    {
+        var result = await Mediator.Send(new GetTelegramSubscriptions.Query(chatId), cancellationToken);
+        return Ok(result);
+    }
 }

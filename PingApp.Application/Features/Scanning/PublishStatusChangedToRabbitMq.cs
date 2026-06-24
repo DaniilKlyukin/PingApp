@@ -18,17 +18,19 @@ public class PublishStatusChangedToRabbitMq : INotificationHandler<DeviceStatusC
 
     public async Task Handle(DeviceStatusChanged.Notification notification, CancellationToken cancellationToken)
     {
-        var subscriberChatIds = await _subscriptionRepository.GetSubscribersByAddressAsync(notification.Address, cancellationToken);
+        var subscriptions = await _subscriptionRepository.GetSubscriptionsByAddressAsync(notification.Address, cancellationToken);
 
-        if (subscriberChatIds.Count == 0)
+        if (subscriptions.Count == 0)
         {
             return;
         }
 
+        var targetChatIdsWithNicknames = subscriptions.ToDictionary(s => s.ChatId, s => s.Nickname);
+
         await _publishEndpoint.Publish(new DeviceStatusChangedIntegrationEvent(
             notification.Address,
             notification.AtWork,
-            subscriberChatIds,
+            targetChatIdsWithNicknames,
             notification.DateTime
         ), cancellationToken);
     }

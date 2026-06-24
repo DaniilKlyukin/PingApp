@@ -29,9 +29,10 @@ public static class GetGlobalDeviceStatuses
 
                 if (d.LastStatusChangedUtc.HasValue)
                 {
+                    var localTime = d.LastStatusChangedUtc.Value.ToLocalTime();
                     statusString = atWork
-                        ? "В сети"
-                        : $"Не в сети (с {d.LastStatusChangedUtc.Value.ToLocalTime():g})";
+                        ? $"В сети с {localTime:HH:mm}"
+                        : $"Не в сети с {localTime:HH:mm}";
                 }
                 else
                 {

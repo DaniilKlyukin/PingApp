@@ -8,7 +8,7 @@ namespace PingApp.Application.Features.Telegram;
 
 public static class SubscribeTelegram
 {
-    public record Command(long ChatId, string DeviceAddress) : IRequest<Result>;
+    public record Command(long ChatId, string DeviceAddress, string? Nickname = null) : IRequest<Result>;
 
     public sealed class Handler : IRequestHandler<Command, Result>
     {
@@ -35,13 +35,15 @@ public static class SubscribeTelegram
                 return Result.Failure(new ValidationError("Telegram.DeviceUnavailable", "Устройство недоступно для мониторинга."));
             }
 
-            var alreadySubscribed = await _subscriptionRepository.ExistsAsync(request.ChatId, request.DeviceAddress, cancellationToken);
-            if (alreadySubscribed)
+            var existingSubscription = await _subscriptionRepository.GetSubscriptionAsync(request.ChatId, request.DeviceAddress, cancellationToken);
+            if (existingSubscription != null)
             {
+                existingSubscription.UpdateNickname(request.Nickname);
+                await _subscriptionRepository.UpdateAsync(existingSubscription, cancellationToken);
                 return Result.Success();
             }
 
-            var subscription = new TelegramSubscription(request.ChatId, request.DeviceAddress);
+            var subscription = new TelegramSubscription(request.ChatId, request.DeviceAddress, request.Nickname);
             await _subscriptionRepository.AddAsync(subscription, cancellationToken);
 
             return Result.Success();

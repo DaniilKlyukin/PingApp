@@ -8,4 +8,8 @@ public interface ITelegramSubscriptionRepository
     Task AddAsync(TelegramSubscription subscription, CancellationToken cancellationToken = default);
     Task RemoveAsync(long chatId, string deviceAddress, CancellationToken cancellationToken = default);
     Task<List<long>> GetSubscribersByAddressAsync(string deviceAddress, CancellationToken cancellationToken = default);
+    Task<List<TelegramSubscription>> GetSubscriptionsByAddressAsync(string deviceAddress, CancellationToken cancellationToken = default);
+    Task<List<TelegramSubscription>> GetSubscriptionsByChatIdAsync(long chatId, CancellationToken cancellationToken = default);
+    Task<TelegramSubscription?> GetSubscriptionAsync(long chatId, string deviceAddress, CancellationToken cancellationToken = default);
+    Task UpdateAsync(TelegramSubscription subscription, CancellationToken cancellationToken = default);
 }

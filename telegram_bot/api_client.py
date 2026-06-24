@@ -35,10 +35,21 @@ class ApiClient:
                 logger.error(f"Ошибка при запросе статусов устройств: {e}")
                 return []
 
-    async def subscribe(self, chat_id: int, address: str) -> bool:
-        """Подписать пользователя на устройство в C# системе"""
+    async def get_subscriptions(self, chat_id: int) -> List[Dict[str, Any]]:
+        """Получить подписки конкретного чата с их именами"""
         async with httpx.AsyncClient() as client:
-            payload = {"chatId": chat_id, "deviceAddress": address}
+            try:
+                response = await client.get(f"{self.base_url}/telegram/subscriptions/{chat_id}", headers=self.headers)
+                response.raise_for_status()
+                return response.json()
+            except Exception as e:
+                logger.error(f"Ошибка при получении подписок чата {chat_id}: {e}")
+                return []
+
+    async def subscribe(self, chat_id: int, address: str, nickname: Optional[str] = None) -> bool:
+        """Подписать пользователя на устройство с опциональным именем"""
+        async with httpx.AsyncClient() as client:
+            payload = {"chatId": chat_id, "deviceAddress": address, "nickname": nickname}
             try:
                 response = await client.post(
                     f"{self.base_url}/telegram/subscribe",
@@ -51,7 +62,7 @@ class ApiClient:
                 return False
 
     async def unsubscribe(self, chat_id: int, address: str) -> bool:
-        """Отписать пользователя от устройства в C# системе"""
+        """Отписать пользователя от устройства"""
         async with httpx.AsyncClient() as client:
             payload = {"chatId": chat_id, "deviceAddress": address}
             try:

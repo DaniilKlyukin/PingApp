@@ -17,9 +17,10 @@ services:
       - pingapp-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 9
+      start_period: 45s
 
   rabbitmq:
     image: rabbitmq:4.3-management-alpine
@@ -35,9 +36,10 @@ services:
       - pingapp-net
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 8
+      start_period: 30s
 
   pingapp-api:
     image: pingapp-api:latest

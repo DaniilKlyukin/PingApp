@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   pingapp_db:
-    image: postgres:latest
+    image: postgres:18-alpine
     container_name: pingapp-db
     restart: always
     environment:
@@ -22,7 +22,7 @@ services:
       retries: 5
 
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    image: rabbitmq:4.3-management-alpine
     container_name: pingapp-rabbitmq
     restart: always
     environment:
@@ -106,7 +106,7 @@ services:
       - pingapp-net
 
   pgadmin:
-    image: dpage/pgadmin4
+    image: dpage/pgadmin4:9.16
     container_name: pingapp-pgadmin
     restart: always
     environment:
@@ -120,7 +120,7 @@ services:
       - pingapp_db
 
   redis:
-    image: redis:7-alpine
+    image: redis:8.0-alpine
     container_name: pingapp-redis
     restart: always
     ports:
@@ -131,7 +131,7 @@ services:
       - pingapp-net
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.4.2
     container_name: pingapp-elasticsearch
     restart: always
     environment:
@@ -146,7 +146,7 @@ services:
       - pingapp-net
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.11.1
+    image: docker.elastic.co/kibana/kibana:9.4.2
     container_name: pingapp-kibana
     restart: always
     ports:
@@ -159,7 +159,7 @@ services:
       - pingapp-net
 
   jaeger:
-    image: jaegertracing/all-in-one:1.51
+    image: jaegertracing/all-in-one:1.76
     container_name: pingapp-jaeger
     restart: always
     ports:
@@ -169,7 +169,7 @@ services:
       - pingapp-net
 
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.89.0
+    image: otel/opentelemetry-collector-contrib:0.154.0
     container_name: pingapp-otel-collector
     restart: always
     command: ["--config=/etc/otel-collector-config.yaml"]
@@ -183,7 +183,7 @@ services:
       - pingapp-net
 
   prometheus:
-    image: prom/prometheus:v2.48.0
+    image: prom/prometheus:v3.12.0
     container_name: pingapp-prometheus
     restart: always
     volumes:
@@ -197,7 +197,7 @@ services:
       - pingapp-net
 
   grafana:
-    image: grafana/grafana:10.2.2
+    image: grafana/grafana:13.1.0
     container_name: pingapp-grafana
     restart: always
     ports:

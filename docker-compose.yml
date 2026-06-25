@@ -159,7 +159,7 @@ services:
       - pingapp-net
 
   jaeger:
-    image: jaegertracing/all-in-one:1.76
+    image: jaegertracing/all-in-one:1.76.0
     container_name: pingapp-jaeger
     restart: always
     ports:
